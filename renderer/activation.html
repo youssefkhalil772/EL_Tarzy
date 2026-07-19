@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>EL-TARZY — تفعيل النظام</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --accent:      #1B2A4A;
+      --gold:        #C9A84C;
+      --gold-light:  rgba(201,168,76,0.12);
+      --danger:      #DC2626;
+      --success:     #16A34A;
+      --bg:          #F1F5F9;
+      --card:        #FFFFFF;
+      --card2:       #F8FAFC;
+      --border:      #E2E8F0;
+      --text:        #1E293B;
+      --text-muted:  #64748B;
+      --font:        'Cairo', sans-serif;
+      --radius:      12px;
+      --shadow:      0 4px 24px rgba(0,0,0,0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      position: relative;
+    }
+
+    /* Subtle background pattern */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(201,168,76,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(27,42,74,0.05) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    /* ─── Card ─── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px;
+      width: 700px;
+      max-width: 96vw;
+      box-shadow: var(--shadow);
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ─── Header ─── */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo-badge {
+      width: 56px; height: 56px;
+      background: var(--gold-light);
+      border: 1.5px solid rgba(201,168,76,0.4);
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+      flex-shrink: 0;
+    }
+
+    .header-info .shop-name {
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--accent);
+    }
+
+    .header-info .page-title {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .back-btn {
+      margin-right: auto;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-family: var(--font);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: none;
+      transition: all 0.2s;
+    }
+    .back-btn:hover { background: var(--border); color: var(--text); }
+
+    /* ─── Status Banner ─── */
+    .status-banner {
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      background: #F0FDF4;
+      border: 1px solid #BBF7D0;
+    }
+    .status-banner.expired {
+      background: #FEF2F2;
+      border-color: #FECACA;
+    }
+    .status-banner.trial {
+      background: #FFFBEB;
+      border-color: #FDE68A;
+    }
+    .status-banner .s-icon { font-size: 20px; flex-shrink: 0; }
+    .status-banner .s-msg { font-size: 13px; font-weight: 600; color: #15803D; }
+    .status-banner.expired .s-msg { color: #DC2626; }
+    .status-banner.trial .s-msg { color: #92400E; }
+
+    /* ─── Section ─── */
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 10px;
+    }
+
+    /* ─── Code Cards (2 codes side by side) ─── */
+    .codes-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .code-card {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+    }
+
+    .code-card .code-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .code-card .code-value {
+      font-family: 'Courier New', monospace;
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 1.5px;
+      direction: ltr;
+      margin-bottom: 10px;
+    }
+
+    .copy-btn {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      width: 100%;
+      justify-content: center;
+      transition: all 0.15s;
+      font-family: var(--font);
+    }
+    .copy-btn:hover { background: var(--border); color: var(--text); }
+    .copy-btn.copied { background: #F0FDF4; border-color: #BBF7D0; color: #15803D; }
+
+    /* ─── Divider ─── */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 20px 0;
+    }
+
+    /* ─── Contact Cards ─── */
+    .contact-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .contact-card {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .contact-card:hover { border-color: var(--gold); background: var(--gold-light); }
+    .contact-card .cc-icon {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      background: var(--gold-light);
+      border: 1px solid rgba(201,168,76,0.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+    .contact-card .cc-label { font-size: 10px; color: var(--text-muted); margin-bottom: 2px; }
+    .contact-card .cc-value {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--accent);
+      direction: ltr;
+    }
+
+    /* ─── Serial Input ─── */
+    .serial-inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr auto;
+      gap: 8px;
+      align-items: end;
+    }
+
+    .serial-group { display: flex; flex-direction: column; gap: 4px; }
+    .serial-group label { font-size: 10px; color: var(--text-muted); font-weight: 600; }
+
+    .serial-input {
+      background: var(--card2);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 8px;
+      color: var(--text);
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      font-weight: 700;
+      text-align: center;
+      letter-spacing: 1px;
+      transition: border-color 0.2s;
+      width: 100%;
+      direction: ltr;
+    }
+    .serial-input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-light); }
+    .serial-input.error   { border-color: var(--danger); }
+    .serial-input.success { border-color: var(--success); }
+
+    .activate-btn {
+      background: linear-gradient(135deg, var(--gold), #E8C46A);
+      border: none;
+      border-radius: 8px;
+      color: var(--accent);
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 800;
+      padding: 0 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      height: 42px;
+      white-space: nowrap;
+    }
+    .activate-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(201,168,76,0.4); }
+    .activate-btn:active { transform: translateY(0); }
+
+    .feedback-msg {
+      margin-top: 10px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      display: none;
+    }
+    .feedback-msg.error   { background: #FEF2F2; color: var(--danger); border: 1px solid #FECACA; display: block; }
+    .feedback-msg.success { background: #F0FDF4; color: var(--success); border: 1px solid #BBF7D0; display: block; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo-badge">✂️</div>
+    <div class="header-info">
+      <div class="shop-name" id="shopNameDisplay">EL-TARZY</div>
+      <div class="page-title" id="pageTitle">تفعيل النظام</div>
+    </div>
+    <button class="back-btn" id="backBtn" onclick="goBack()">↩ رجوع للنظام</button>
+  </div>
+
+  <!-- Status Banner -->
+  <div class="status-banner trial" id="statusBanner">
+    <div class="s-icon" id="bannerIcon">⏳</div>
+    <div class="s-msg" id="bannerMsg">جاري فحص الحالة...</div>
+  </div>
+
+  <!-- Contact Phones -->
+  <div class="section-label">📞 تواصل معنا لشراء النظام</div>
+  <div class="contact-cards" id="contactCards">
+    <div class="contact-card" id="phone1Card" onclick="callPhone('01129021377')">
+      <div class="cc-icon">📱</div>
+      <div class="cc-info">
+        <div class="cc-label">واتساب / اتصال</div>
+        <div class="cc-value" id="phone1Display">01129021377</div>
+      </div>
+    </div>
+    <div class="contact-card" id="phone2Card" onclick="callPhone('01204165586')">
+      <div class="cc-icon">📲</div>
+      <div class="cc-info">
+        <div class="cc-label">واتساب / اتصال</div>
+        <div class="cc-value" id="phone2Display">01204165586</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Two Codes -->
+  <div class="section-label">🔑 كودا جهازك (أرسلهما معاً للحصول على مفتاح التفعيل)</div>
+  <div class="codes-grid">
+    <!-- HW ID -->
+    <div class="code-card">
+      <div class="code-label">🖥️ كود الجهاز (ثابت)</div>
+      <div class="code-value" id="hwIdDisplay">جاري التحميل...</div>
+      <button class="copy-btn" id="copyHwBtn" onclick="copyCode('hwIdDisplay','copyHwBtn')">📋 نسخ كود الجهاز</button>
+    </div>
+    <!-- Install ID -->
+    <div class="code-card">
+      <div class="code-label">📦 كود التثبيت (يتغير مع إعادة التثبيت)</div>
+      <div class="code-value" id="installIdDisplay">جاري التحميل...</div>
+      <button class="copy-btn" id="copyInstallBtn" onclick="copyCode('installIdDisplay','copyInstallBtn')">📋 نسخ كود التثبيت</button>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Serial Input -->
+  <div class="section-label">🔓 إدخال مفتاح التفعيل</div>
+  <div class="serial-inputs">
+    <div class="serial-group">
+      <label>الكود 1</label>
+      <input type="text" class="serial-input" id="serial1" maxlength="5" placeholder="XXXXX" oninput="handleSerialInput(this,'serial2')" />
+    </div>
+    <div class="serial-group">
+      <label>الكود 2</label>
+      <input type="text" class="serial-input" id="serial2" maxlength="5" placeholder="XXXXX" oninput="handleSerialInput(this,'serial3')" />
+    </div>
+    <div class="serial-group">
+      <label>الكود 3</label>
+      <input type="text" class="serial-input" id="serial3" maxlength="5" placeholder="XXXXX" oninput="handleSerialInput(this,'serial4')" />
+    </div>
+    <div class="serial-group">
+      <label>الكود 4</label>
+      <input type="text" class="serial-input" id="serial4" maxlength="5" placeholder="XXXXX" oninput="handleSerialInput(this,null)" />
+    </div>
+    <button class="activate-btn" id="activateBtn" onclick="doActivate()">✅ تفعيل</button>
+  </div>
+  <div class="feedback-msg" id="feedbackMsg"></div>
+
+</div>
+
+<script>
+  // ─── Init Data ────────────────────────────────────────────────────────────────
+  async function loadInitialData() {
+    try {
+      // 1. Shop name from settings
+      const settingsRes = await window.db.getSettings();
+      if (settingsRes.success && settingsRes.data) {
+        const s = settingsRes.data;
+        document.getElementById('shopNameDisplay').textContent = s.company_name || 'EL-TARZY';
+
+        // Contact phones are hardcoded in the HTML for activation support.
+      }
+
+      // 2. HW ID + Install ID
+      const [hwId, installId] = await Promise.all([
+        window.activation.getHwId(),
+        window.activation.getInstallId()
+      ]);
+      document.getElementById('hwIdDisplay').textContent      = hwId;
+      document.getElementById('installIdDisplay').textContent = installId;
+
+      // 3. Trial status
+      const status  = await window.activation.getStatus();
+      const banner  = document.getElementById('statusBanner');
+      const icon    = document.getElementById('bannerIcon');
+      const msg     = document.getElementById('bannerMsg');
+      const title   = document.getElementById('pageTitle');
+      const backBtn = document.getElementById('backBtn');
+
+      if (status.activated) {
+        title.textContent = 'النظام مفعّل ✅';
+        banner.className = 'status-banner';
+        icon.textContent = '✅';
+        msg.textContent  = 'النظام مفعّل بالكامل — شكراً لثقتك!';
+        backBtn.style.display = 'block';
+      } else if (status.trialExpired) {
+        title.textContent = 'انتهت فترة التجربة';
+        banner.className = 'status-banner expired';
+        icon.textContent = '⏰';
+        msg.textContent  = 'انتهت فترة التجربة المجانية (7 أيام). أرسل الكودين أعلاه للحصول على مفتاح التفعيل.';
+        backBtn.style.display = 'block'; // السماح بالرجوع للداشبورد (وضع القراءة فقط)
+      } else {
+        title.textContent = 'تفعيل النظام';
+        banner.className = 'status-banner trial';
+        icon.textContent = '⏳';
+        msg.textContent  = `أنت في فترة التجربة المجانية — متبقي ${status.daysLeft} ${status.daysLeft === 1 ? 'يوم' : 'أيام'}. يمكنك التفعيل الآن في أي وقت.`;
+        backBtn.style.display = 'block';
+      }
+
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  // ─── Copy Code ────────────────────────────────────────────────────────────────
+  async function copyCode(displayId, btnId) {
+    const text = document.getElementById(displayId).textContent;
+    if (!text || text === 'جاري التحميل...') return;
+    try {
+      await navigator.clipboard.writeText(text);
+      const btn = document.getElementById(btnId);
+      const orig = btn.textContent;
+      btn.textContent = '✅ تم النسخ';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 2000);
+    } catch (e) { /* ignore */ }
+  }
+
+  // ─── Auto focus next serial field ────────────────────────────────────────────
+  function handleSerialInput(input, nextId) {
+    input.value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (input.value.length >= 5 && nextId) {
+      document.getElementById(nextId).focus();
+    }
+  }
+
+  // ─── Call/WhatsApp ────────────────────────────────────────────────────────────
+  function callPhone(phone) {
+    if (!phone) return;
+    const clean = phone.replace(/\D/g, '');
+    window.electron.openExternal(`https://wa.me/2${clean}`);
+  }
+
+  // ─── Activate ────────────────────────────────────────────────────────────────
+  async function doActivate() {
+    const s1 = document.getElementById('serial1').value.trim();
+    const s2 = document.getElementById('serial2').value.trim();
+    const s3 = document.getElementById('serial3').value.trim();
+    const s4 = document.getElementById('serial4').value.trim();
+
+    if (!s1 || !s2 || !s3 || !s4) {
+      showFeedback('يرجى إدخال مفتاح التفعيل كاملاً في الخانات الأربعة', 'error');
+      return;
+    }
+
+    const serial = `${s1}-${s2}-${s3}-${s4}`;
+    const btn    = document.getElementById('activateBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ جاري التحقق...';
+
+    try {
+      const result = await window.activation.activate(serial);
+      if (result.success) {
+        showFeedback('✅ تم التفعيل بنجاح! سيتم فتح البرنامج الآن...', 'success');
+        ['serial1','serial2','serial3','serial4'].forEach(id => {
+          document.getElementById(id).classList.add('success');
+        });
+        setTimeout(() => window.electron.navigate('login.html'), 1800);
+      } else {
+        showFeedback(result.error || 'مفتاح التفعيل غير صحيح، يرجى التحقق من الكود', 'error');
+        ['serial1','serial2','serial3','serial4'].forEach(id => {
+          document.getElementById(id).classList.add('error');
+          setTimeout(() => document.getElementById(id).classList.remove('error'), 2000);
+        });
+        btn.disabled  = false;
+        btn.textContent = '✅ تفعيل';
+      }
+    } catch (e) {
+      showFeedback('حدث خطأ أثناء التحقق، حاول مرة أخرى', 'error');
+      btn.disabled  = false;
+      btn.textContent = '✅ تفعيل';
+    }
+  }
+
+  function showFeedback(msg, type) {
+    const el = document.getElementById('feedbackMsg');
+    el.textContent = msg;
+    el.className = `feedback-msg ${type}`;
+  }
+
+  function goBack() {
+    window.electron.navigate('login.html');
+  }
+
+  // ─── Init ────────────────────────────────────────────────────────────────────
+  loadInitialData();
+</script>
+</body>
+</html>

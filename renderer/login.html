@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EL-TARZY — تسجيل الدخول</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../styles/global.css" />
+  <style>
+    body {
+      background: linear-gradient(135deg, #0F1729 0%, #1B2A4A 40%, #243560 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .login-container {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 32px;
+    }
+
+    /* Animated background circles */
+    .bg-circle {
+      position: fixed;
+      border-radius: 50%;
+      opacity: 0.06;
+      pointer-events: none;
+    }
+    .bg-circle-1 { width: 600px; height: 600px; background: var(--accent); top: -200px; right: -100px; }
+    .bg-circle-2 { width: 400px; height: 400px; background: #3B82F6; bottom: -100px; left: -80px; }
+    .bg-circle-3 { width: 300px; height: 300px; background: var(--accent); bottom: 100px; right: 200px; animation: float 8s ease-in-out infinite; }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-30px); }
+    }
+
+    /* Logo area */
+    .login-logo {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .login-logo-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, var(--accent), #B8963E);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      font-weight: 900;
+      color: #fff;
+      box-shadow: 0 8px 32px rgba(201,168,76,0.35);
+      animation: logoGlow 3s ease-in-out infinite;
+    }
+
+    .login-logo-img {
+      width: 80px;
+      height: 80px;
+      border-radius: 20px;
+      object-fit: cover;
+      box-shadow: 0 8px 32px rgba(201,168,76,0.35);
+    }
+
+    @keyframes logoGlow {
+      0%, 100% { box-shadow: 0 8px 32px rgba(201,168,76,0.35); }
+      50% { box-shadow: 0 8px 48px rgba(201,168,76,0.55); }
+    }
+
+    .login-title {
+      font-size: 28px;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: -0.5px;
+    }
+
+    .login-subtitle {
+      font-size: 14px;
+      color: rgba(255,255,255,0.5);
+      font-weight: 400;
+    }
+
+    /* Card */
+    .login-card {
+      background: rgba(255,255,255,0.97);
+      border-radius: 20px;
+      padding: 36px 32px;
+      width: 380px;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.3);
+      backdrop-filter: blur(20px);
+    }
+
+    .login-card-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .login-field {
+      margin-bottom: 18px;
+    }
+
+    .login-field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .login-field input {
+      width: 100%;
+      height: 44px;
+      padding: 0 16px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-family: var(--font);
+      font-size: 14px;
+      color: var(--text-primary);
+      background: #fff;
+      transition: all 0.2s ease;
+    }
+
+    .login-field input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(201,168,76,0.15);
+    }
+
+    .login-field input.error {
+      border-color: var(--danger);
+      box-shadow: 0 0 0 4px rgba(224,82,82,0.12);
+    }
+
+    .login-btn {
+      width: 100%;
+      height: 48px;
+      background: linear-gradient(135deg, var(--accent), #B8963E);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-family: var(--font);
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .login-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(201,168,76,0.4);
+    }
+
+    .login-btn:active {
+      transform: translateY(0);
+    }
+
+    .login-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .login-error {
+      background: var(--danger-light);
+      color: var(--danger);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: none;
+      text-align: center;
+    }
+
+    .login-error.show {
+      display: block;
+      animation: shake 0.4s ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-8px); }
+      75% { transform: translateX(8px); }
+    }
+
+    .login-footer {
+      text-align: center;
+      color: rgba(255,255,255,0.3);
+      font-size: 12px;
+    }
+
+    .login-version {
+      font-size: 11px;
+      color: rgba(255,255,255,0.2);
+    }
+
+    /* Loading spinner */
+    .login-spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    .login-btn.loading .login-spinner { display: block; }
+    .login-btn.loading .login-btn-text { display: none; }
+
+    /* Password toggle */
+    .password-wrapper {
+      position: relative;
+    }
+
+    .password-toggle {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px;
+    }
+
+    .password-toggle:hover { color: var(--accent); }
+  </style>
+</head>
+<body>
+
+<div class="bg-circle bg-circle-1"></div>
+<div class="bg-circle bg-circle-2"></div>
+<div class="bg-circle bg-circle-3"></div>
+
+<div class="login-container">
+
+  <!-- Logo -->
+  <div class="login-logo">
+    <div class="login-logo-icon" id="logoIcon">T</div>
+    <div class="login-title" id="loginTitle">EL-TARZY</div>
+    <div class="login-subtitle">نظام إدارة محل الترزي</div>
+  </div>
+
+  <!-- Login Card -->
+  <div class="login-card">
+    <div class="login-card-title">تسجيل الدخول</div>
+
+    <div class="login-error" id="loginError"></div>
+
+    <form id="loginForm" onsubmit="handleLogin(event)">
+      <div class="login-field">
+        <label for="username">اسم المستخدم</label>
+        <input type="text" id="username" placeholder="أدخل اسم المستخدم" autocomplete="off" autofocus />
+      </div>
+
+      <div class="login-field">
+        <label for="password">كلمة المرور</label>
+        <div class="password-wrapper">
+          <input type="password" id="password" placeholder="أدخل كلمة المرور" />
+          <button type="button" class="password-toggle" onclick="togglePassword()" tabindex="-1">
+            <span id="eyeIcon">◉</span>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="login-btn" id="loginBtn">
+        <span class="login-btn-text">دخول</span>
+        <div class="login-spinner"></div>
+      </button>
+    </form>
+  </div>
+
+  <!-- Footer -->
+  <div class="login-footer">
+    EL-TARZY — Dev Blue Tech © 2026
+    <div class="login-version" id="appVersion"></div>
+  </div>
+</div>
+
+<!-- Quit confirmation overlay -->
+<div class="modal-overlay" id="quitModal">
+  <div class="modal modal-sm" style="max-width:420px;">
+    <div class="modal-header">
+      <div class="modal-title">إغلاق البرنامج</div>
+    </div>
+    <div class="modal-body" style="text-align:center;">
+      <p style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px;">هل تريد إنشاء نسخة احتياطية قبل الخروج؟</p>
+      <p style="font-size:12px;color:var(--text-muted);">سيتم حفظ نسخة من قاعدة البيانات تلقائياً</p>
+    </div>
+    <div class="modal-footer" style="justify-content:center;gap:8px;">
+      <button class="btn btn-success" onclick="window.electron.quitWithBackup()">
+        موافق — نسخ وخروج
+      </button>
+      <button class="btn btn-danger" onclick="window.electron.quitWithoutBackup()">
+        خروج بدون نسخة
+      </button>
+      <button class="btn btn-outline" onclick="closeQuitModal()">
+        إلغاء
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── Load company logo & name ─────────────────────────────────────────────────
+async function loadBranding() {
+  try {
+    const res = await window.db.getSettings();
+    if (res.success && res.data) {
+      const s = res.data;
+      if (s.company_name) {
+        document.getElementById('loginTitle').textContent = s.company_name;
+      }
+      if (s.logo_path) {
+        const logoUrl = await window.electron.getLogoPath(s.logo_path);
+        if (logoUrl) {
+          const iconEl = document.getElementById('logoIcon');
+          iconEl.innerHTML = `<img src="${logoUrl}" class="login-logo-img" alt="Logo" />`;
+          iconEl.style.background = 'none';
+          iconEl.style.boxShadow = 'none';
+        }
+      }
+    }
+  } catch (e) { /* ignore branding errors */ }
+}
+
+// ─── Password toggle ──────────────────────────────────────────────────────────
+function togglePassword() {
+  const input = document.getElementById('password');
+  const icon = document.getElementById('eyeIcon');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.textContent = '';
+  } else {
+    input.type = 'password';
+    icon.textContent = '◉';
+  }
+}
+
+// ─── Login handler ────────────────────────────────────────────────────────────
+async function handleLogin(e) {
+  e.preventDefault();
+
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  const errorEl = document.getElementById('loginError');
+  const btn = document.getElementById('loginBtn');
+
+  // Validate
+  if (!username || !password) {
+    showError('يرجى إدخال اسم المستخدم وكلمة المرور');
+    return;
+  }
+
+  // Loading state
+  btn.classList.add('loading');
+  btn.disabled = true;
+  errorEl.classList.remove('show');
+
+  // Activation guard
+  const allowed = await checkActivation();
+  if (!allowed) return;
+
+  try {
+    const result = await window.auth.login(username, password);
+
+    if (!result.success) {
+      showError(result.error || 'فشل تسجيل الدخول');
+      return;
+    }
+
+    const user = result.data;
+
+    // Store session data in sessionStorage for renderer pages
+    sessionStorage.setItem('elTarzy_userId', user.userId);
+    sessionStorage.setItem('elTarzy_employeeId', user.employeeId);
+    sessionStorage.setItem('elTarzy_employeeName', user.employeeName);
+    sessionStorage.setItem('elTarzy_username', user.username);
+    sessionStorage.setItem('elTarzy_role', user.role);
+    sessionStorage.setItem('elTarzy_shiftId', user.shiftId || '');
+
+    // Everyone needs to start a shift
+    if (user.shiftId) {
+      // Already has an open shift, go to dashboard
+      window.electron.navigate('main-dashboard.html');
+    } else {
+      // Must start a shift first
+      window.electron.navigate('start-shift.html');
+    }
+
+  } catch (err) {
+    showError('حدث خطأ في الاتصال بقاعدة البيانات');
+    console.error(err);
+  } finally {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('loginError');
+  el.textContent = msg;
+  el.classList.add('show');
+  document.getElementById('loginBtn').classList.remove('loading');
+  document.getElementById('loginBtn').disabled = false;
+}
+
+// ─── Enter key support ────────────────────────────────────────────────────────
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+  }
+});
+
+// ─── Quit confirmation ────────────────────────────────────────────────────────
+window.electron.onConfirmBackupBeforeQuit(() => {
+  document.getElementById('quitModal').classList.add('open');
+});
+
+function closeQuitModal() {
+  document.getElementById('quitModal').classList.remove('open');
+  window.electron.cancelQuit();
+}
+
+// ─── Activation check ─────────────────────────────────────────────────────────
+async function checkActivation() {
+  try {
+    const status = await window.activation.getStatus();
+    if (status.activated) return true; // مفعّل، تمام
+    if (status.trialExpired) {
+      // الفترة التجريبية انتهت — حوّله لصفحة التفعيل
+      document.body.innerHTML = `
+        <div style="position:fixed;inset:0;background:linear-gradient(135deg,#0F1729,#1B2A4A);display:flex;align-items:center;justify-content:center;font-family:'Cairo',sans-serif;">
+          <div style="background:rgba(255,255,255,0.95);border-radius:20px;padding:48px 40px;max-width:460px;width:90%;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,0.4);">
+            <div style="font-size:56px;margin-bottom:16px;">🔒</div>
+            <h2 style="color:#1B2A4A;font-size:22px;margin-bottom:10px;font-weight:900;">انتهت الفترة التجريبية</h2>
+            <p style="color:#64748B;font-size:14px;line-height:1.7;margin-bottom:24px;">
+              لقد انتهت فترة التجربة المجانية لمدة 7 أيام.<br>
+              يرجى تفعيل البرنامج للاستمرار في الاستخدام.
+            </p>
+            <button onclick="window.electron.navigate('activation.html')" 
+              style="background:linear-gradient(135deg,#C9A84C,#B8963E);color:#fff;border:none;border-radius:12px;padding:14px 40px;font-size:16px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;box-shadow:0 4px 20px rgba(201,168,76,0.4);">
+              تفعيل البرنامج الآن
+            </button>
+          </div>
+        </div>`;
+      return false;
+    }
+    // لسه في أيام متبقية — اعرض رسالة تحذير
+    if (status.daysLeft <= 3) {
+      const loginError = document.getElementById('loginError');
+      if (loginError) {
+        loginError.textContent = `⚠️ الفترة التجريبية تنتهي خلال ${status.daysLeft} ${status.daysLeft === 1 ? 'يوم' : 'أيام'}`;
+        loginError.style.display = 'block';
+        loginError.style.background = '#fef3c7';
+        loginError.style.color = '#92400e';
+      }
+    }
+    return true;
+  } catch (e) {
+    console.error('Activation check failed:', e);
+    return true; // لو فيه خطأ، اسمح بالدخول (fail-open)
+  }
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+loadBranding();
+checkActivation();
+</script>
+</body>
+</html>

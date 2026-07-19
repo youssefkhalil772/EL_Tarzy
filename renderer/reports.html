@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>EL-TARZY — التقارير</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../styles/global.css" />
+  <script src="../node_modules/sweetalert2/dist/sweetalert2.all.min.js"></script>
+  <style>
+    .rpt-layout { display: flex; height: 100vh; flex-direction: column; }
+    
+    /* Tabs Navigation */
+    .rpt-tabs {
+      display: flex;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 0 16px;
+      overflow-x: auto;
+      flex-shrink: 0;
+    }
+    .rpt-tab {
+      padding: 16px 20px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      transition: all var(--transition);
+      white-space: nowrap;
+    }
+    .rpt-tab:hover { color: var(--primary); }
+    .rpt-tab.active { color: var(--primary); border-bottom-color: var(--accent); background: var(--bg); }
+    
+    /* Content Area */
+    .rpt-content {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .rpt-section { display: none; flex: 1; flex-direction: column; }
+    .rpt-section.active { display: flex; }
+    
+    /* Filter Bar */
+    .filter-bar {
+      display: flex;
+      gap: 12px;
+      background: var(--card);
+      padding: 16px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      margin-bottom: 16px;
+      align-items: flex-end;
+      flex-shrink: 0;
+    }
+    
+    /* Summary Row */
+    .summary-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+      flex-shrink: 0;
+    }
+    .summary-card {
+      flex: 1;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: #fff;
+      padding: 16px 20px;
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .summary-card.accent { background: linear-gradient(135deg, #8B6914, var(--accent)); }
+    .summary-card.success { background: linear-gradient(135deg, #1b6343, var(--success)); }
+    .summary-card.danger { background: linear-gradient(135deg, #8b3333, var(--danger)); }
+    
+    .summary-val { font-size: 24px; font-weight: 900; }
+    .summary-lbl { font-size: 12px; color: rgba(255,255,255,0.7); }
+    
+    .table-container { flex: 1; display: flex; flex-direction: column; min-height: 0; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); }
+    .table-container > .table-wrapper { flex: 1; border: none; border-radius: 0; }
+  </style>
+</head>
+<body>
+<div class="rpt-layout">
+
+  <!-- Header -->
+  <header class="app-header" style="flex-shrink:0;">
+    <div>
+      <div class="header-title">التقارير الشاملة</div>
+      <div class="header-subtitle">تقارير المبيعات، الأرباح، والمشتريات</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-outline" onclick="goBack()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+        رجوع
+      </button>
+    </div>
+  </header>
+
+  <!-- Tabs -->
+  <div class="rpt-tabs">
+    <div class="rpt-tab active" onclick="switchTab('sales', this)">المبيعات والأرباح</div>
+    <div class="rpt-tab" onclick="switchTab('purchases', this)">المشتريات</div>
+    <div class="rpt-tab" onclick="switchTab('shifts', this)">تقارير الشيفتات</div>
+    <div class="rpt-tab" onclick="switchTab('income', this)">قائمة الدخل</div>
+    <div class="rpt-tab" id="cleanupTab" onclick="switchTab('cleanup', this)" style="color:var(--danger);">حذف البيانات</div>
+  </div>
+
+  <div class="rpt-content">
+    
+    <!-- ── Sales & Profits ──────────────────────────────────────────────── -->
+    <div class="rpt-section active" id="sec-sales">
+      
+      <div class="filter-bar" style="flex-wrap: wrap;">
+        <div class="form-group">
+          <label class="form-label">من تاريخ</label>
+          <input type="date" id="salesFrom" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">إلى تاريخ</label>
+          <input type="date" id="salesTo" class="form-control" />
+        </div>
+        <div class="form-group" style="width:200px;">
+          <label class="form-label">بحث برقم الفاتورة / العميل</label>
+          <input type="text" id="salesSearch" class="form-control" placeholder="بحث..." oninput="loadSalesReport()" />
+        </div>
+        <div class="form-group" style="width:160px;">
+          <label class="form-label">حالة الفاتورة</label>
+          <select id="salesStatusFilter" class="form-control" onchange="loadSalesReport()">
+            <option value="">الكل</option>
+            <option value="تحت الشغل">تحت الشغل</option>
+            <option value="في انتظار الاستلام">في انتظار الاستلام</option>
+            <option value="تم التسليم">تم التسليم</option>
+            <option value="غير مسددة">غير مسددة (مديونية)</option>
+          </select>
+        </div>
+        <div class="form-group" style="width:140px;">
+          <label class="form-label">الخياط</label>
+          <select id="salesTailorFilter" class="form-control" onchange="loadSalesReport()">
+            <option value="">الكل</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="loadSalesReport()">تحديث التقرير</button>
+        <button class="btn btn-outline" onclick="window.electron.print()">طباعة</button>
+      </div>
+
+      <div class="summary-row" style="flex-wrap: wrap;">
+        <div class="summary-card">
+          <div class="summary-val" id="salesTotal">0.00</div>
+          <div class="summary-lbl">إجمالي المبيعات (الصافي)</div>
+        </div>
+        <div class="summary-card success">
+          <div class="summary-val" id="salesPaid">0.00</div>
+          <div class="summary-lbl">إجمالي المحصل</div>
+        </div>
+        <div class="summary-card accent">
+          <div class="summary-val" id="salesDelivered">0</div>
+          <div class="summary-lbl">فواتير مسلمة</div>
+        </div>
+        <div class="summary-card" style="background: linear-gradient(135deg, #1f2937, #374151);">
+          <div class="summary-val" id="salesInProgress">0</div>
+          <div class="summary-lbl">تحت الشغل</div>
+        </div>
+        <div class="summary-card" style="background: linear-gradient(135deg, #1e3a5f, #2563eb);">
+          <div class="summary-val" id="salesAwaiting">0</div>
+          <div class="summary-lbl">في انتظار الاستلام 📦</div>
+        </div>
+        <div class="summary-card danger">
+          <div class="summary-val" id="salesUnpaidAmount">0.00</div>
+          <div class="summary-lbl">مديونيات الفواتير</div>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>رقم الفاتورة</th>
+                <th>التاريخ</th>
+                <th>العميل</th>
+                <th>الخياط</th>
+                <th>الكاشير</th>
+                <th>الحالة</th>
+                <th>نوع الدفع</th>
+                <th>الإجمالي</th>
+                <th>الخصم</th>
+                <th>الصافي</th>
+                <th>المدفوع</th>
+                <th>الباقي</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="salesTableBody">
+              <tr><td colspan="10" class="table-empty">جاري التحميل...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Purchases ────────────────────────────────────────────────────── -->
+    <div class="rpt-section" id="sec-purchases">
+      <div class="filter-bar">
+        <div class="form-group">
+          <label class="form-label">من تاريخ</label>
+          <input type="date" id="purFrom" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">إلى تاريخ</label>
+          <input type="date" id="purTo" class="form-control" />
+        </div>
+        <button class="btn btn-primary" onclick="loadPurchasesReport()">تحديث التقرير</button>
+        <button class="btn btn-outline" onclick="window.electron.print()">طباعة</button>
+      </div>
+
+      <div class="summary-row">
+        <div class="summary-card">
+          <div class="summary-val" id="purTotal">0.00</div>
+          <div class="summary-lbl">إجمالي المشتريات</div>
+        </div>
+        <div class="summary-card success">
+          <div class="summary-val" id="purPaid">0.00</div>
+          <div class="summary-lbl">إجمالي المدفوع للموردين</div>
+        </div>
+        <div class="summary-card danger">
+          <div class="summary-val" id="purRemaining">0.00</div>
+          <div class="summary-lbl">المتبقي للموردين</div>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>التاريخ</th>
+                <th>المورد</th>
+                <th>الإجمالي</th>
+                <th>المدفوع</th>
+                <th>الباقي</th>
+                <th>ملاحظات</th>
+              </tr>
+            </thead>
+            <tbody id="purchasesTableBody">
+              <tr><td colspan="6" class="table-empty">جاري التحميل...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Shifts ───────────────────────────────────────────────────────── -->
+    <div class="rpt-section" id="sec-shifts">
+      <div class="filter-bar">
+        <div class="form-group">
+          <label class="form-label">من تاريخ</label>
+          <input type="date" id="shiftFrom" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">إلى تاريخ</label>
+          <input type="date" id="shiftTo" class="form-control" />
+        </div>
+        <button class="btn btn-primary" onclick="loadShiftsReport()">تحديث التقرير</button>
+      </div>
+
+      <div class="table-container">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>رقم الشيفت</th>
+                <th>التاريخ</th>
+                <th>الموظف (الكاشير)</th>
+                <th>بداية الشيفت</th>
+                <th>نهاية الشيفت</th>
+                <th>مبيعات الشيفت</th>
+                <th>مصروفات الشيفت</th>
+              </tr>
+            </thead>
+            <tbody id="shiftsTableBody">
+              <tr><td colspan="7" class="table-empty">جاري التحميل...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Income Statement ─────────────────────────────────────────────── -->
+    <div class="rpt-section" id="sec-income">
+      <div class="filter-bar">
+        <div class="form-group">
+          <label class="form-label">الشهر</label>
+          <input type="month" id="incomeMonth" class="form-control" />
+        </div>
+        <button class="btn btn-primary" onclick="loadIncomeStatement()">إنشاء القائمة</button>
+      </div>
+
+      <div class="card" style="max-width:800px;margin:0 auto;width:100%;">
+        <div class="card-header">
+          <div class="card-title">قائمة الدخل المبسطة</div>
+        </div>
+        
+        <div style="font-size:16px;font-weight:700;color:var(--success);margin-bottom:8px;">الإيرادات</div>
+        <div class="flex justify-between mb-2 padding-x" style="padding:0 12px;"><span>إجمالي المبيعات</span><span id="inc_sales" style="font-weight:600;">0.00</span></div>
+        <div class="flex justify-between mb-2 padding-x" style="padding:0 12px;"><span>إيرادات أخرى</span><span id="inc_other_rev" style="font-weight:600;">0.00</span></div>
+        <div class="flex justify-between mb-4 padding-x" style="padding:8px 12px;background:var(--bg-secondary);border-radius:4px;font-weight:700;"><span>إجمالي الإيرادات (A)</span><span id="inc_total_rev" style="color:var(--success);">0.00</span></div>
+
+        <div style="font-size:16px;font-weight:700;color:var(--danger);margin-bottom:8px;">المصروفات وتكلفة المبيعات</div>
+        <div class="flex justify-between mb-2 padding-x" style="padding:0 12px;"><span>تكلفة المبيعات (الخامات)</span><span id="inc_cogs" style="font-weight:600;">0.00</span></div>
+        <div class="flex justify-between mb-2 padding-x" style="padding:0 12px;"><span>المرتجعات</span><span id="inc_returns" style="font-weight:600;">0.00</span></div>
+        <div class="flex justify-between mb-2 padding-x" style="padding:0 12px;"><span>مصروفات التشغيل</span><span id="inc_expenses" style="font-weight:600;">0.00</span></div>
+        <div class="flex justify-between mb-2 padding-x" style="padding:0 12px;"><span>رواتب الموظفين (المصروفة)</span><span id="inc_salaries" style="font-weight:600;">0.00</span></div>
+        <div class="flex justify-between mb-4 padding-x" style="padding:8px 12px;background:var(--bg-secondary);border-radius:4px;font-weight:700;"><span>إجمالي المصروفات والتكاليف (B)</span><span id="inc_total_exp" style="color:var(--danger);">0.00</span></div>
+
+        <div style="border-top:2px solid var(--border);margin:16px 0;"></div>
+        
+        <div class="flex justify-between padding-x" style="padding:8px 12px;font-size:20px;font-weight:900;">
+          <span>صافي الدخل (A - B)</span>
+          <span id="inc_net_income">0.00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Cleanup ──────────────────────────────────────────────────────── -->
+    <div class="rpt-section" id="sec-cleanup">
+      <div class="card" style="border-color:var(--danger);max-width:600px;margin:0 auto;width:100%;">
+        <div class="card-header">
+          <div class="card-title text-danger">منطقة الخطر - حذف البيانات</div>
+        </div>
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px;line-height:1.6;">
+          استخدم هذه الخيارات بحذر شديد. سيتم حذف البيانات نهائياً ولا يمكن التراجع عن هذه الخطوة. 
+          يُنصح بعمل نسخة احتياطية (Backup) من الإعدادات قبل الحذف.
+        </p>
+
+        <div class="flex flex-col gap-4">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;border:1px solid var(--border);border-radius:var(--radius-sm);">
+            <div>
+              <div style="font-weight:700;font-size:14px;">حذف جميع الفواتير والمرتجعات</div>
+              <div style="font-size:11px;color:var(--text-muted);">حذف سجل المبيعات بالكامل وتصفير عداد الفواتير.</div>
+            </div>
+            <button class="btn btn-danger" onclick="truncateInvoices()">حذف الفواتير</button>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;border:1px solid var(--border);border-radius:var(--radius-sm);">
+            <div>
+              <div style="font-weight:700;font-size:14px;">حذف المصروفات والإيرادات</div>
+              <div style="font-size:11px;color:var(--text-muted);">مسح سجل الخزينة، المصروفات، والرواتب.</div>
+            </div>
+            <button class="btn btn-danger" onclick="truncateFinance()">حذف المالية</button>
+          </div>
+          
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;border:1px solid var(--danger);background:var(--danger-light);border-radius:var(--radius-sm);">
+            <div>
+              <div style="font-weight:700;font-size:14px;color:var(--danger);">ضبط مصنع (حذف كل شيء)</div>
+              <div style="font-size:11px;color:var(--danger);">حذف العملاء، الخدمات، الفواتير، وكل شيء ماعدا الإعدادات.</div>
+            </div>
+            <button class="btn btn-danger" onclick="factoryReset()">ضبط مصنع</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="js/shared/common.js"></script>
+<script src="js/reports.js"></script>
+</body>
+</html>

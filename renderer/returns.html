@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>EL-TARZY — المرتجعات</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../styles/global.css" />
+  <script src="../node_modules/sweetalert2/dist/sweetalert2.all.min.js"></script>
+  <style>
+    .returns-layout { display: flex; height: 100vh; flex-direction: column; }
+    .returns-body { flex: 1; display: flex; overflow: hidden; }
+    .returns-search-panel {
+      width: 320px;
+      background: var(--card);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    .returns-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 16px; gap: 12px; }
+    .invoice-info-card {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: #fff;
+      border-radius: var(--radius);
+      padding: 14px 18px;
+    }
+    .invoice-info-card .row { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; }
+    .invoice-info-card .row span:first-child { color: rgba(255,255,255,0.6); }
+    .invoice-info-card .row strong { color: var(--accent); }
+    .return-summary {
+      display: flex;
+      gap: 12px;
+    }
+    .return-summary-box {
+      flex: 1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      text-align: center;
+    }
+    .return-summary-box .val { font-size: 20px; font-weight: 700; }
+    .return-summary-box .lbl { font-size: 11px; color: var(--text-muted); }
+    .select-all-btn {
+      height: 28px; padding: 0 12px; font-size: 11px;
+      background: var(--info-light); color: var(--info);
+      border: 1px solid var(--info); border-radius: var(--radius-sm);
+      cursor: pointer; font-family: var(--font); font-weight: 600;
+    }
+    .search-result-item {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all var(--transition);
+      margin-bottom: 6px;
+    }
+    .search-result-item:hover { border-color: var(--accent); background: var(--accent-light); }
+    .search-result-item .inv-num { font-size: 13px; font-weight: 700; color: var(--primary); }
+    .search-result-item .inv-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  </style>
+</head>
+<body>
+<div class="returns-layout">
+
+  <!-- Header -->
+  <header class="app-header" style="flex-shrink:0;">
+    <div>
+      <div class="header-title">↩ المرتجعات</div>
+      <div class="header-subtitle">استرجاع جزئي أو كلي من الفواتير السابقة</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-outline" onclick="goBack()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+        رجوع
+      </button>
+    </div>
+  </header>
+
+  <div class="returns-body">
+
+    <!-- Search Panel -->
+    <div class="returns-search-panel">
+      <div style="font-size:13px;font-weight:700;color:var(--primary);">بحث عن فاتورة</div>
+
+      <div class="form-group">
+        <label class="form-label">بحث برقم الفاتورة، العميل أو التاريخ</label>
+        <div style="display:flex;gap:6px;">
+          <input type="text" id="searchQuery" class="form-control" placeholder="رقم الفاتورة، اسم العميل، التاريخ..."
+            onkeydown="if(event.key==='Enter') searchInvoice()" oninput="searchInvoice()" />
+          <button class="btn btn-accent btn-sm" onclick="searchInvoice()">بحث</button>
+        </div>
+      </div>
+
+      <div style="font-size:11px;color:var(--text-muted);font-weight:600;">نتائج البحث</div>
+      <div id="searchResults" style="flex:1;overflow-y:auto;">
+        <div class="table-empty" style="padding:24px 0;">اكتب للبحث عن فاتورة</div>
+      </div>
+    </div>
+
+    <!-- Main Returns Area -->
+    <div class="returns-main">
+
+      <!-- Invoice Info -->
+      <div id="invoiceInfoCard" style="display:none;" class="invoice-info-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div style="font-size:18px;font-weight:700;">تفاصيل الفاتورة الأصلية</div>
+          <div id="invNumBadge" style="background:var(--accent);padding:4px 16px;border-radius:20px;font-size:15px;font-weight:700;"></div>
+        </div>
+        <div class="row" style="font-size:14px;"><span>العميل:</span><span id="invCustomer" style="font-weight:600;">—</span></div>
+        <div class="row" style="font-size:14px;"><span>التاريخ:</span><span id="invDate" style="font-weight:600;">—</span></div>
+        <div class="row" style="font-size:15px;margin-top:4px;"><span>المبلغ الإجمالي:</span><strong id="invTotal" style="font-size:16px;">0</strong></div>
+        <div class="row" style="font-size:15px;"><span>المدفوع:</span><span id="invPaid" style="font-weight:700;color:#e2e8f0;">0</span></div>
+      </div>
+
+      <!-- Return Summary -->
+      <div class="return-summary" id="returnSummary" style="display:none;">
+        <div class="return-summary-box">
+          <div class="val" id="retTotalItems">0</div>
+          <div class="lbl">عدد الأصناف</div>
+        </div>
+        <div class="return-summary-box">
+          <div class="val" id="retTotalQty">0</div>
+          <div class="lbl">إجمالي الكمية</div>
+        </div>
+        <div class="return-summary-box">
+          <div class="val text-danger" id="retTotalAmount">0.00</div>
+          <div class="lbl">قيمة المرتجع (جنيه)</div>
+        </div>
+        <div class="form-group" style="flex:1;">
+          <label class="form-label">خزنة المرتجع</label>
+          <select id="returnTreasury" class="form-control">
+            <option value="الخزينة">الخزينة (كاش)</option>
+            <option value="فودافون كاش">فودافون كاش</option>
+          </select>
+        </div>
+        <div class="form-group" style="flex:2;">
+          <label class="form-label">ملاحظات المرتجع</label>
+          <input type="text" id="returnNotes" class="form-control" placeholder="سبب الإرجاع..." />
+        </div>
+      </div>
+
+      <!-- Items Table -->
+      <div class="table-wrapper" style="flex:1;overflow:auto;" id="itemsTableWrapper">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:40px;">
+                <input type="checkbox" id="selectAllChk" onchange="toggleSelectAll(this.checked)" style="cursor:pointer;" />
+              </th>
+              <th>المنتج</th>
+              <th>القسم</th>
+              <th>الكمية الأصلية</th>
+              <th>السعر قبل الخصم</th>
+              <th>الخصم</th>
+              <th>السعر بعد الخصم</th>
+              <th>كمية المرتجع</th>
+              <th>قيمة المرتجع</th>
+            </tr>
+          </thead>
+          <tbody id="returnItemsBody">
+            <tr><td colspan="9" class="table-empty"><div style="font-size:32px;margin-bottom:8px;"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--text-muted);"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></div>ابحث عن فاتورة لعرض أصنافها</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex gap-3 items-center" id="returnActions" style="display:none!important;">
+        <button class="btn btn-danger" onclick="processReturn('full')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2v6h6"/><path d="M3 8C5.3 4.9 8.9 3 13 3c5.5 0 10 4.5 10 10s-4.5 10-10 10c-4.1 0-7.7-1.9-10-5"/></svg>
+          مرتجع فاتورة كاملة
+        </button>
+        <button class="btn btn-warning" onclick="processReturn('partial')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2v6h6"/><path d="M3 8C5.3 4.9 8.9 3 13 3c5.5 0 10 4.5 10 10s-4.5 10-10 10c-4.1 0-7.7-1.9-10-5"/></svg>
+          مرتجع أصناف محددة
+        </button>
+        <button class="btn btn-outline" onclick="clearSelection()">إلغاء التحديد</button>
+      </div>
+
+      <!-- Returns History -->
+      <div style="margin-top:8px;">
+        <div style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:8px;">سجل المرتجعات</div>
+        <div class="table-wrapper" style="max-height:180px;overflow:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>رقم الفاتورة الأصلية</th>
+                <th>تاريخ الإرجاع</th>
+                <th>القيمة المُرتجعة</th>
+                <th>ملاحظات</th>
+              </tr>
+            </thead>
+            <tbody id="returnsHistoryBody">
+              <tr><td colspan="5" class="table-empty">لا توجد مرتجعات</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+let currentInvoice = null;
+let currentItems = [];
+
+function goBack(){ window.electron.navigate('main-dashboard.html'); }
+
+function showToast(msg,type='success'){
+  const c=document.getElementById('toastContainer');
+  const t=document.createElement('div');
+  t.className=`toast toast-${type}`;
+  t.innerHTML=`<span>${type==='success'?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':type==='error'?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>':'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 9v2m0 4h.01M12 3l9 16H3L12 3z"/></svg>'}</span> ${msg}`;
+  c.appendChild(t);
+  setTimeout(()=>{t.style.animation='toastOut 0.3s ease forwards';setTimeout(()=>t.remove(),300);},3000);
+}
+
+function fmt(n){ return Number(n||0).toFixed(2); }
+
+// ─── Search ───────────────────────────────────────────────────────────────────
+async function searchInvoice() {
+  const q = document.getElementById('searchQuery').value.trim();
+  if(!q) return;
+
+  const res = await window.db.query(
+    `SELECT i.*, c.name as customer_name 
+     FROM invoices i 
+     LEFT JOIN customers c ON i.customer_id = c.id
+     WHERE c.name LIKE ? OR i.invoice_date LIKE ? OR i.invoice_number LIKE ?
+     ORDER BY i.id DESC LIMIT 20`,
+    [`%${q}%`, `%${q}%`, `%${q}%`]
+  );
+  
+  const container = document.getElementById('searchResults');
+  if(!res.success || !res.data.length){
+    container.innerHTML = '<div class="table-empty" style="padding:16px 0;">لا توجد نتائج</div>';
+    return;
+  }
+  
+  // If exactly one exact match on invoice number, load it directly
+  const exactMatch = res.data.find(inv => inv.invoice_number.toLowerCase() === q.toLowerCase());
+  if(exactMatch && res.data.length === 1) {
+    loadInvoice(exactMatch);
+  }
+  
+  container.innerHTML = res.data.map(inv => `
+    <div class="search-result-item" onclick="loadInvoice(${JSON.stringify(inv).replace(/"/g,'&quot;')})">
+      <div class="inv-num">${inv.invoice_number}</div>
+      <div class="inv-meta">${inv.customer_name || 'عميل نقدي'} | ${inv.invoice_date} | ${fmt(inv.net_total)} جنيه</div>
+    </div>
+  `).join('');
+}
+
+async function loadInvoice(inv) {
+  currentInvoice = inv;
+  // Show info card
+  document.getElementById('invoiceInfoCard').style.display='block';
+  document.getElementById('invNumBadge').textContent = inv.invoice_number;
+  document.getElementById('invCustomer').textContent = inv.customer_name || 'عميل نقدي';
+  document.getElementById('invDate').textContent = inv.invoice_date;
+  document.getElementById('invTotal').textContent = fmt(inv.net_total)+' جنيه';
+  document.getElementById('invPaid').textContent = fmt(inv.amount_paid)+' جنيه';
+
+  // Load items and subtract already returned quantities
+  const itemRes = await window.db.query(
+    `SELECT ii.*, 
+            ii.quantity - COALESCE((SELECT SUM(quantity_returned) FROM return_items WHERE invoice_item_id = ii.id), 0) as available_qty
+     FROM invoice_items ii 
+     WHERE ii.invoice_id = ?`, [inv.id]
+  );
+  if(itemRes.success){
+    // Only show items that still have available quantity to return
+    currentItems = itemRes.data.filter(item => item.available_qty > 0);
+    renderReturnItems();
+    document.getElementById('returnSummary').style.display='flex';
+    document.getElementById('returnActions').style.display='flex';
+  }
+}
+
+function renderReturnItems() {
+  const tbody = document.getElementById('returnItemsBody');
+  if(!currentItems.length){
+    tbody.innerHTML='<tr><td colspan="9" class="table-empty">لا توجد أصناف</td></tr>';
+    return;
+  }
+  tbody.innerHTML = currentItems.map((item,i)=>`
+    <tr>
+      <td><input type="checkbox" class="item-chk" data-idx="${i}" onchange="calcReturnTotal()" style="cursor:pointer;" /></td>
+      <td style="font-weight:600;">${item.service_name}</td>
+      <td><span class="badge badge-accent">${item.category_name||'—'}</span></td>
+      <td style="text-align:center;">${item.available_qty}</td>
+      <td style="text-align:left;">${fmt(item.sell_price)}</td>
+      <td style="color:var(--danger);">${item.item_discount>0?fmt(item.item_discount):'—'}</td>
+      <td style="text-align:left;">${fmt(item.sell_price-item.item_discount)}</td>
+      <td>
+        <input type="number" class="qty-input" style="width:60px;height:28px;border:1px solid var(--border);border-radius:4px;text-align:center;font-family:var(--font);"
+          data-max="${item.available_qty}" value="1" min="1" max="${item.available_qty}"
+          onchange="calcReturnTotal()" data-idx="${i}" />
+      </td>
+      <td class="item-ret-total" data-idx="${i}" style="font-weight:700;color:var(--danger);">0.00</td>
+    </tr>
+  `).join('');
+  calcReturnTotal();
+}
+
+function toggleSelectAll(checked) {
+  document.querySelectorAll('.item-chk').forEach(chk=>{ chk.checked=checked; });
+  calcReturnTotal();
+}
+
+function calcReturnTotal() {
+  let totalItems=0, totalQty=0, totalAmount=0;
+  document.querySelectorAll('.item-chk:checked').forEach(chk=>{
+    const idx = parseInt(chk.dataset.idx);
+    const qtyInput = document.querySelector(`.qty-input[data-idx="${idx}"]`);
+    const qty = parseInt(qtyInput?.value)||1;
+    const item = currentItems[idx];
+    if(!item) return;
+    const unitPrice = item.sell_price - (item.item_discount||0);
+    const subtotal = unitPrice * qty;
+    const retTotalCell = document.querySelector(`.item-ret-total[data-idx="${idx}"]`);
+    if(retTotalCell) retTotalCell.textContent = fmt(subtotal);
+    totalItems++;
+    totalQty += qty;
+    totalAmount += subtotal;
+  });
+
+  // Apply proportional invoice discount
+  let ratio = 1;
+  if(currentInvoice && currentInvoice.subtotal > 0) {
+    ratio = currentInvoice.net_total / currentInvoice.subtotal;
+  }
+  const finalTotalAmount = totalAmount * ratio;
+
+  document.getElementById('retTotalItems').textContent = totalItems;
+  document.getElementById('retTotalQty').textContent = totalQty;
+  document.getElementById('retTotalAmount').textContent = fmt(finalTotalAmount);
+  window.currentCalculatedReturnAmount = finalTotalAmount;
+}
+
+function clearSelection() {
+  document.querySelectorAll('.item-chk').forEach(chk=>chk.checked=false);
+  document.getElementById('selectAllChk').checked=false;
+  calcReturnTotal();
+}
+
+// ─── Process Return ───────────────────────────────────────────────────────────
+async function processReturn(type) {
+  if(!currentInvoice){ showToast('يرجى تحديد فاتورة أولاً','error'); return; }
+
+  let ratio = 1;
+  if(currentInvoice && currentInvoice.subtotal > 0) {
+    ratio = currentInvoice.net_total / currentInvoice.subtotal;
+  }
+
+  let returnItems = [];
+  if(type==='full'){
+    returnItems = currentItems.map(item=>({
+      invoice_item_id: item.id,
+      product_name: item.service_name,
+      quantity_returned: item.available_qty,
+      price_before_discount: item.sell_price,
+      item_discount: item.item_discount||0,
+      price_after_discount: item.sell_price-(item.item_discount||0),
+      total: ((item.sell_price-(item.item_discount||0))*item.available_qty) * ratio
+    }));
+  } else {
+    document.querySelectorAll('.item-chk:checked').forEach(chk=>{
+      const idx=parseInt(chk.dataset.idx);
+      const qtyInput=document.querySelector(`.qty-input[data-idx="${idx}"]`);
+      const qty=parseInt(qtyInput?.value)||1;
+      const item=currentItems[idx];
+      if(!item) return;
+      const unitPrice=item.sell_price-(item.item_discount||0);
+      returnItems.push({
+        invoice_item_id:item.id, product_name:item.service_name,
+        quantity_returned:qty, price_before_discount:item.sell_price,
+        item_discount:item.item_discount||0, price_after_discount:unitPrice,
+        total: (unitPrice*qty) * ratio
+      });
+    });
+  }
+
+  if(!returnItems.length){ showToast('لم يتم تحديد أي أصناف للإرجاع','warning'); return; }
+
+  let totalReturned = returnItems.reduce((s,i)=>s+i.total,0);
+  
+  // if partial return, totalReturned can just be window.currentCalculatedReturnAmount to avoid precision issues
+  if(type !== 'full' && window.currentCalculatedReturnAmount !== undefined) {
+    totalReturned = window.currentCalculatedReturnAmount;
+  }
+  
+  const remainingDebt = currentInvoice.remaining || 0;
+  const cashRefund = Math.max(0, totalReturned - remainingDebt);
+  const debtCancelled = Math.min(totalReturned, remainingDebt);
+  
+  const treasuryType = document.getElementById('returnTreasury').value;
+  let msg = `إجمالي قيمة المرتجع: ${fmt(totalReturned)} جنيه.\n`;
+  if (debtCancelled > 0) msg += `- سيتم خصم ${fmt(debtCancelled)} جنيه من المديونية المتبقية للفاتورة.\n`;
+  if (cashRefund > 0) msg += `- سيتم استرجاع مبلغ ${fmt(cashRefund)} جنيه من ${treasuryType}.\n`;
+  msg += `\nهل أنت متأكد؟`;
+
+  if(!confirm(msg)) return;
+
+  const res = await window.db.saveReturn({
+    original_invoice_id: currentInvoice.id,
+    total_returned: totalReturned,
+    treasury_type: treasuryType,
+    notes: document.getElementById('returnNotes').value
+  }, returnItems);
+
+  if(res.success){
+    showToast(`تم تسجيل المرتجع بنجاح — قيمة: ${fmt(totalReturned)} جنيه `,'success');
+    loadReturnsHistory();
+    currentInvoice=null; currentItems=[];
+    document.getElementById('invoiceInfoCard').style.display='none';
+    document.getElementById('returnSummary').style.display='none';
+    document.getElementById('returnActions').style.display='none';
+    document.getElementById('returnItemsBody').innerHTML=
+      '<tr><td colspan="9" class="table-empty">ابحث عن فاتورة لعرض أصنافها</td></tr>';
+    document.getElementById('searchInvNumber').value='';
+    document.getElementById('returnNotes').value='';
+  } else { showToast('خطأ: '+res.error,'error'); }
+}
+
+// ─── Load History ─────────────────────────────────────────────────────────────
+async function loadReturnsHistory() {
+  const res = await window.db.query(
+    `SELECT r.*,i.invoice_number FROM returns r LEFT JOIN invoices i ON r.original_invoice_id=i.id
+     ORDER BY r.id DESC LIMIT 50`,[]
+  );
+  const tbody = document.getElementById('returnsHistoryBody');
+  if(!res.success||!res.data.length){
+    tbody.innerHTML='<tr><td colspan="5" class="table-empty">لا توجد مرتجعات</td></tr>';
+    return;
+  }
+  tbody.innerHTML = res.data.map((r,i)=>`
+    <tr>
+      <td style="color:var(--text-muted);">${i+1}</td>
+      <td style="font-weight:600;">${r.invoice_number||r.original_invoice_id}</td>
+      <td>${r.return_date}</td>
+      <td style="color:var(--danger);font-weight:700;">${fmt(r.total_returned)} جنيه</td>
+      <td style="color:var(--text-muted);">${r.notes||'—'}</td>
+    </tr>
+  `).join('');
+}
+
+// ─── Quit ─────────────────────────────────────────────────────────────────────
+window.electron.onConfirmBackupBeforeQuit(() => {
+  Swal.fire({
+    title: 'إغلاق البرنامج', text: 'هل تريد إنشاء نسخة احتياطية قبل الخروج؟', icon: 'question',
+    showDenyButton: true, showCancelButton: true, confirmButtonText: 'نسخ وخروج', denyButtonText: 'خروج بدون نسخة', cancelButtonText: 'إلغاء'
+  }).then((r) => {
+    if (r.isConfirmed) window.electron.quitWithBackup();
+    else if (r.isDenied) window.electron.quitWithoutBackup();
+    else window.electron.cancelQuit();
+  });
+});
+
+loadReturnsHistory();
+</script>
+</body>
+</html>

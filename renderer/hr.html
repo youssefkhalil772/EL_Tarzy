@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>EL-TARZY — شئون الموظفين</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../styles/global.css" />
+  <script src="../node_modules/sweetalert2/dist/sweetalert2.all.min.js"></script>
+  <style>
+    .hr-layout { display: flex; height: 100vh; flex-direction: row-reverse; }
+    .hr-sidebar {
+      width: 200px;
+      background: var(--primary);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      padding: 12px 0;
+      flex-shrink: 0;
+      overflow-y: auto;
+    }
+    .hr-sidebar-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.35);
+      padding: 4px 14px 8px;
+      letter-spacing: 0.05em;
+    }
+    .hr-nav-btn {
+      padding: 10px 14px;
+      color: rgba(255,255,255,0.7);
+      font-family: var(--font);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      text-align: right;
+      width: 100%;
+      border-right: 3px solid transparent;
+      transition: all var(--transition);
+    }
+    .hr-nav-btn:hover { background: rgba(255,255,255,0.06); color: #fff; }
+    .hr-nav-btn.active { background: rgba(201,168,76,0.15); color: var(--accent); border-right-color: var(--accent); }
+    .hr-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .hr-body { flex: 1; overflow-y: auto; padding: 20px; }
+    .section { display: none; }
+    .section.active { display: block; }
+
+    .salary-row-highlight { background: var(--success-light) !important; }
+    .emp-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .emp-card:hover { border-color: var(--accent); box-shadow: var(--shadow); }
+    .emp-avatar {
+      width: 44px; height: 44px;
+      background: var(--primary);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 18px; font-weight: 700;
+      flex-shrink: 0;
+    }
+    .emp-info .name { font-size: 14px; font-weight: 700; color: var(--primary); }
+    .emp-info .meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .emp-card-actions { margin-right: auto; display: flex; gap: 6px; }
+  </style>
+</head>
+<body>
+<div class="hr-layout">
+
+  <!-- HR Sidebar -->
+  <div class="hr-sidebar">
+    <div class="hr-sidebar-title">شئون الموظفين</div>
+    <button class="hr-nav-btn active" onclick="showSection('employees')">الموظفون</button>
+    <button class="hr-nav-btn" onclick="showSection('new-employee')">موظف جديد</button>
+    <button class="hr-nav-btn" onclick="showSection('attendance')">الحضور والانصراف</button>
+    <button class="hr-nav-btn" onclick="showSection('leaves')">الإجازات</button>
+    <button class="hr-nav-btn" onclick="showSection('advances')">السلف</button>
+    <button class="hr-nav-btn" onclick="showSection('deductions')">الخصومات</button>
+    <button class="hr-nav-btn" onclick="showSection('incentives')">الحوافز</button>
+    <button class="hr-nav-btn" onclick="showSection('custody')">العهد</button>
+    <button class="hr-nav-btn" onclick="showSection('salary')">الرواتب</button>
+    <button class="hr-nav-btn" onclick="showSection('emp-sales')">مبيعات الموظف</button>
+    <div style="margin-top:auto;padding:12px 14px;border-top:1px solid rgba(255,255,255,0.08);">
+      <button class="btn btn-outline" onclick="goBack()" style="width:100%;color:rgba(255,255,255,0.6);border-color:rgba(255,255,255,0.15);font-size:12px;">← رجوع</button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="hr-content">
+    <header class="app-header" style="flex-shrink:0;">
+      <div>
+        <div class="header-title" id="sectionTitle">الموظفون</div>
+        <div class="header-subtitle">إدارة شاملة لشئون الموظفين</div>
+      </div>
+      <div class="header-actions">
+        <div class="search-bar" style="width:220px;">
+          <input type="text" placeholder="بحث..." id="globalSearch" oninput="onGlobalSearch()" />
+          <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+      </div>
+    </header>
+
+    <div class="hr-body">
+
+      <!-- ── Employees List ─────────────────────────────────────────────── -->
+      <div class="section active" id="section-employees">
+        <div class="flex justify-between items-center mb-4">
+          <div style="font-size:13px;font-weight:700;color:var(--primary);">جميع الموظفين</div>
+          <button class="btn btn-accent btn-sm" onclick="showSection('new-employee')">+ موظف جديد</button>
+        </div>
+        <div id="employeesList"></div>
+      </div>
+
+      <!-- ── New Employee ───────────────────────────────────────────────── -->
+      <div class="section" id="section-new-employee">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">إضافة موظف جديد</div>
+          </div>
+          <div class="form-row cols-3 mb-3">
+            <div class="form-group">
+              <label class="form-label">الاسم الكامل *</label>
+              <input type="text" id="ne_name" class="form-control" placeholder="اسم الموظف" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">السن</label>
+              <input type="number" id="ne_age" class="form-control" placeholder="25" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">التليفون</label>
+              <input type="text" id="ne_phone" class="form-control" placeholder="01xxxxxxxxx" />
+            </div>
+          </div>
+          <div class="form-row cols-3 mb-3">
+            <div class="form-group">
+              <label class="form-label">الراتب الشهري (جنيه)</label>
+              <input type="number" id="ne_salary" class="form-control" placeholder="0" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">ساعات العمل / يوم</label>
+              <input type="number" id="ne_hours" class="form-control" placeholder="8" value="8" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">الوظيفة</label>
+              <input type="text" id="ne_jobtitle" class="form-control" placeholder="بائع / كاشير / مدير" />
+            </div>
+          </div>
+          <div class="form-row cols-3 mb-3">
+            <div class="form-group">
+              <label class="form-label">تاريخ التعيين</label>
+              <input type="date" id="ne_hiredate" class="form-control" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">نسبة الخياط % (إن وجد)</label>
+              <input type="number" id="ne_commission" class="form-control" placeholder="مثال: 33.3" value="0" step="any" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">نوع الموظف</label>
+              <select id="ne_type" class="form-control">
+                <option>موظف عادي</option>
+                <option>مدير</option>
+                <option>كاشير</option>
+                <option>بائع</option>
+                <option>خياط</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">أيام الإجازة الشهرية</label>
+              <input type="number" id="ne_leave_days" class="form-control" placeholder="2" value="2" min="0" max="30" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">الحالة</label>
+              <select id="ne_active" class="form-control">
+                <option value="1">نشط</option>
+                <option value="0">غير نشط</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row cols-2 mb-3">
+            <div class="form-group">
+              <label class="form-label">اسم المستخدم</label>
+              <input type="text" id="ne_username" class="form-control" placeholder="username" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">كلمة المرور</label>
+              <input type="password" id="ne_password" class="form-control" placeholder="••••••••" />
+            </div>
+          </div>
+          <div class="flex gap-3">
+            <button class="btn btn-success" onclick="saveEmployee()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              حفظ الموظف
+            </button>
+            <button class="btn btn-outline" onclick="clearNewEmployee()">مسح</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Attendance ──────────────────────────────────────────────────── -->
+      <div class="section" id="section-attendance">
+        <div class="card mb-4">
+          <div class="card-header"><div class="card-title">تسجيل حضور / انصراف</div></div>
+          <div class="form-row cols-3">
+            <div class="form-group">
+              <label class="form-label">الموظف *</label>
+              <select id="att_emp" class="form-control"></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">تاريخ</label>
+              <input type="date" id="att_date" class="form-control" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">وقت الحضور</label>
+              <input type="time" id="att_checkin" class="form-control" />
+            </div>
+          </div>
+          <div class="form-row cols-3 mt-3">
+            <div class="form-group">
+              <label class="form-label">وقت الانصراف</label>
+              <input type="time" id="att_checkout" class="form-control" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">دقائق التأخير</label>
+              <input type="number" id="att_late" class="form-control" placeholder="0" value="0" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">دقائق زيادة</label>
+              <input type="number" id="att_extra" class="form-control" placeholder="0" value="0" />
+            </div>
+          </div>
+          <div class="flex gap-3 mt-3">
+            <button class="btn btn-success" onclick="saveAttendance()">حفظ الحضور</button>
+            <button class="btn btn-warning" onclick="saveCheckout()">تسجيل انصراف</button>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>الموظف</th><th>التاريخ</th><th>حضور</th><th>انصراف</th><th>تأخير (دق)</th><th>زيادة (دق)</th></tr></thead>
+            <tbody id="attendanceBody"><tr><td colspan="6" class="table-empty">لا توجد سجلات</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── Leaves ──────────────────────────────────────────────────────── -->
+      <div class="section" id="section-leaves">
+        <div class="card mb-4">
+          <div class="card-header"><div class="card-title">تسجيل إجازة</div></div>
+          <div class="form-row cols-3">
+            <div class="form-group">
+              <label class="form-label">الموظف *</label>
+              <select id="lv_emp" class="form-control"></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">تاريخ الإجازة</label>
+              <input type="date" id="lv_date" class="form-control" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">السبب</label>
+              <input type="text" id="lv_reason" class="form-control" placeholder="سبب الإجازة" />
+            </div>
+          </div>
+          <div class="flex gap-3 mt-3">
+            <button class="btn btn-success" onclick="saveLeave()">تسجيل الإجازة</button>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>الموظف</th><th>التاريخ</th><th>السبب</th><th>حذف</th></tr></thead>
+            <tbody id="leavesBody"><tr><td colspan="4" class="table-empty">لا توجد إجازات</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── Advances ────────────────────────────────────────────────────── -->
+      <div class="section" id="section-advances">
+        <div class="card mb-4">
+          <div class="card-header"><div class="card-title">تسجيل سلفة</div></div>
+          <div class="form-row cols-3">
+            <div class="form-group">
+              <label class="form-label">الموظف *</label>
+              <select id="adv_emp" class="form-control"></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">المبلغ (جنيه) *</label>
+              <input type="number" id="adv_amount" class="form-control" placeholder="0" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">الخزينة *</label>
+              <select id="adv_treasury" class="form-control">
+                <option value="الخزينة">الخزينة النقدية</option>
+                <option value="فودافون كاش">فودافون كاش</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">ملاحظات</label>
+              <input type="text" id="adv_notes" class="form-control" placeholder="سبب السلفة" />
+            </div>
+          </div>
+          <div class="flex gap-3 mt-3">
+            <button class="btn btn-success" onclick="saveAdvance()">تسجيل السلفة</button>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>الموظف</th><th>المبلغ</th><th>التاريخ</th><th>ملاحظات</th><th>حذف</th></tr></thead>
+            <tbody id="advancesBody"><tr><td colspan="6" class="table-empty">لا توجد سلف</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── Deductions ──────────────────────────────────────────────────── -->
+      <div class="section" id="section-deductions">
+        <div class="card mb-4">
+          <div class="card-header"><div class="card-title">تسجيل خصم</div></div>
+          <div class="form-row cols-3">
+            <div class="form-group">
+              <label class="form-label">الموظف *</label>
+              <select id="ded_emp" class="form-control"></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">المبلغ (جنيه) *</label>
+              <input type="number" id="ded_amount" class="form-control" placeholder="0" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">السبب</label>
+              <input type="text" id="ded_reason" class="form-control" placeholder="سبب الخصم" />
+            </div>
+          </div>
+          <div class="flex gap-3 mt-3">
+            <button class="btn btn-danger" onclick="saveDeduction()">تسجيل الخصم</button>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>الموظف</th><th>المبلغ</th><th>السبب</th><th>التاريخ</th><th>حذف</th></tr></thead>
+            <tbody id="deductionsBody"><tr><td colspan="5" class="table-empty">لا توجد خصومات</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── Incentives ──────────────────────────────────────────────────── -->
+      <div class="section" id="section-incentives">
+        <div class="card mb-4">
+          <div class="card-header"><div class="card-title">تسجيل حافز</div></div>
+          <div class="form-row cols-3">
+            <div class="form-group">
+              <label class="form-label">الموظف *</label>
+              <select id="inc_emp" class="form-control"></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">المبلغ (جنيه) *</label>
+              <input type="number" id="inc_amount" class="form-control" placeholder="0" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">السبب</label>
+              <input type="text" id="inc_reason" class="form-control" placeholder="سبب الحافز" />
+            </div>
+          </div>
+          <div class="flex gap-3 mt-3">
+            <button class="btn btn-success" onclick="saveIncentive()">تسجيل الحافز</button>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>الموظف</th><th>المبلغ</th><th>السبب</th><th>التاريخ</th><th>حذف</th></tr></thead>
+            <tbody id="incentivesBody"><tr><td colspan="5" class="table-empty">لا توجد حوافز</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── Custody ─────────────────────────────────────────────────────── -->
+      <div class="section" id="section-custody">
+        <div class="card mb-4">
+          <div class="card-header"><div class="card-title">تسجيل عهدة</div></div>
+          <div class="form-row cols-4">
+            <div class="form-group">
+              <label class="form-label">الموظف *</label>
+              <select id="cus_emp" class="form-control"></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">الصنف</label>
+              <input type="text" id="cus_item" class="form-control" placeholder="اسم العهدة" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">الكمية</label>
+              <input type="number" id="cus_qty" class="form-control" value="1" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">ملاحظات</label>
+              <input type="text" id="cus_notes" class="form-control" placeholder="ملاحظات" />
+            </div>
+          </div>
+          <div class="flex gap-3 mt-3">
+            <button class="btn btn-accent" onclick="saveCustody()">تسجيل العهدة</button>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>الموظف</th><th>الصنف</th><th>الكمية</th><th>تاريخ التسليم</th><th>تاريخ الاسترداد</th><th>استرداد</th></tr></thead>
+            <tbody id="custodyBody"><tr><td colspan="6" class="table-empty">لا توجد عهد</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── Salary ──────────────────────────────────────────────────────── -->
+      <div class="section" id="section-salary">
+        <div class="card mb-4">
+          <div class="card-header">
+            <div class="card-title">حسابات الرواتب</div>
+            <div class="flex gap-3 items-center">
+              <div class="form-group" style="margin:0;width:140px;">
+                <select id="salaryMonth" class="form-control" onchange="loadSalaryReport()"></select>
+              </div>
+              <button class="btn btn-accent btn-sm" onclick="loadSalaryReport()">تحديث</button>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>الموظف</th>
+                  <th>الراتب الأساسي</th>
+                  <th>عمولة الخياط</th>
+                  <th>إجمالي السلف</th>
+                  <th>الخصومات</th>
+                  <th>الحوافز</th>
+                  <th>الصافي</th>
+                  <th>الحالة</th>
+                  <th>صرف</th>
+                </tr>
+              </thead>
+              <tbody id="salaryBody"><tr><td colspan="9" class="table-empty">اختر الشهر لعرض الرواتب</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Employee Sales ──────────────────────────────────────────────── -->
+      <div class="section" id="section-emp-sales">
+        <div class="card mb-4">
+          <div class="card-header">
+            <div class="card-title">مبيعات الموظف</div>
+            <div class="flex gap-3 items-center">
+              <div class="form-group" style="margin:0;width:160px;">
+                <select id="empSalesEmp" class="form-control" onchange="loadEmpSales()">
+                  <option value="">كل الموظفين</option>
+                </select>
+              </div>
+              <input type="date" id="empSalesFrom" class="form-control" style="width:140px;" onchange="loadEmpSales()" />
+              <input type="date" id="empSalesTo" class="form-control" style="width:140px;" onchange="loadEmpSales()" />
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr><th>رقم الفاتورة</th><th>العميل</th><th>التاريخ</th><th>الإجمالي</th><th>المدفوع</th><th>الباقي</th></tr>
+              </thead>
+              <tbody id="empSalesBody"><tr><td colspan="6" class="table-empty">اختر موظفاً لعرض مبيعاته</td></tr></tbody>
+              <tfoot id="empSalesFoot" style="display:none;">
+                <tr>
+                  <td colspan="3" style="text-align:right;font-weight:700;">الإجمالي</td>
+                  <td id="empSalesTotal">0</td>
+                  <td id="empSalesPaid">0</td>
+                  <td id="empSalesRemaining">0</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /.hr-body -->
+  </div><!-- /.hr-content -->
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Confirm Salary Modal -->
+<div class="modal-overlay" id="salaryConfirmModal">
+  <div class="modal modal-sm">
+    <div class="modal-header"><div class="modal-title">صرف راتب</div><button class="modal-close" onclick="closeModal('salaryConfirmModal')">✕</button></div>
+    <div class="modal-body" id="salaryConfirmBody">
+      <div id="salaryPaySummary" style="text-align:center;margin-bottom:14px;"></div>
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:right;">
+        <div class="form-group mb-3">
+          <label class="form-label">المبلغ المراد صرفه (جنيه)</label>
+          <input type="number" id="payPartialAmount" class="form-control" min="0.01" step="0.01" />
+        </div>
+        <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px;">تقسيم المبلغ على الخزائن:</div>
+        <div class="form-group mb-2">
+          <label class="form-label">💵 الخزينة النقدية (جنيه)</label>
+          <input type="number" id="payCashAmount" class="form-control" min="0" step="0.01" value="0" oninput="syncPaySplit('cash')" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">📱 فودافون كاش (جنيه)</label>
+          <input type="number" id="payVodafoneAmount" class="form-control" min="0" step="0.01" value="0" oninput="syncPaySplit('vodafone')" />
+        </div>
+        <div id="paySplitHint" style="font-size:11px;color:var(--text-muted);margin-top:6px;"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-success" id="confirmPayBtn">تأكيد الصرف</button>
+      <button class="btn btn-outline" onclick="closeModal('salaryConfirmModal')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- Employee Details Modal -->
+<div class="modal-overlay" id="empDetailsModal">
+  <div class="modal modal-md">
+    <div class="modal-header">
+      <div class="modal-title">تفاصيل الموظف (<span id="empDetMonth"></span>)</div>
+      <button class="modal-close" onclick="closeModal('empDetailsModal')">✕</button>
+    </div>
+    <div class="modal-body" id="empDetailsBody" style="font-size:14px; line-height:1.6;">
+       <!-- content -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn" style="background:var(--primary);color:#fff;" onclick="printEmpDetails('a4')">🖨️ طباعة A4</button>
+      <button class="btn btn-accent" onclick="printEmpDetails('thermal')">🧾 طباعة حرارية</button>
+      <button class="btn btn-outline" onclick="closeModal('empDetailsModal')">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/shared/common.js"></script>
+<script src="js/hr.js"></script>
+</body>
+</html>

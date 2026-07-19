@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>EL-TARZY — الإعدادات</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../styles/global.css" />
+  <style>
+    .set-body {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: start;
+      align-content: start;
+    }
+
+    .set-section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      width: 100%;
+    }
+
+    .set-section.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .set-section-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-preview-area {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .logo-preview {
+      width: 80px;
+      height: 80px;
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      font-weight: 900;
+      color: var(--accent);
+      background: var(--accent-light);
+      overflow: hidden;
+    }
+
+    .logo-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .toggle-row:last-child { border-bottom: none; }
+
+    .toggle-label { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+    .toggle-hint { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    .toggle-switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      cursor: pointer;
+    }
+
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: var(--border);
+      border-radius: 24px;
+      transition: 0.2s ease;
+    }
+
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      right: 3px;
+      top: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+      background: var(--success);
+    }
+
+    .toggle-switch input:checked + .toggle-slider::before {
+      right: calc(100% - 21px);
+    }
+
+    .backup-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      margin-bottom: 8px;
+    }
+
+    .backup-item-info { flex: 1; }
+    .backup-item-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+    .backup-item-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    .backup-item-missing {
+      opacity: 0.5;
+    }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">T</div>
+      <div>
+        <div class="logo-text">EL-TARZY</div>
+        <div class="logo-sub">نظام إدارة محل الترزي</div>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-nav-item" onclick="goBack()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        الرئيسية
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">أقسام الإعدادات</div>
+      <div class="sidebar-nav-item" onclick="showSection('store')">🏬 بيانات المحل</div>
+      <div class="sidebar-nav-item" onclick="showSection('cashier')">🔐 صلاحيات الكاشير</div>
+      <div class="sidebar-nav-item" onclick="showSection('users')">👥 إدارة المستخدمين</div>
+      <div class="sidebar-nav-item" onclick="showSection('backup')">💾 النسخ الاحتياطي</div>
+      <div class="sidebar-nav-item" onclick="showSection('whatsapp')">📱 واتساب</div>
+      <div class="sidebar-nav-item" onclick="showSection('wa-templates')">💬 قوالب الرسائل</div>
+    </div>
+    <div class="sidebar-footer">
+      <div id="sidebarShopName">EL-TARZY</div>
+      <div>Dev Blue Tech © 2026</div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="app-header">
+      <div>
+        <div class="header-title">الإعدادات العامة</div>
+        <div class="header-subtitle">تخصيص بيانات المتجر وإعدادات الطباعة والمستخدمين</div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-outline" onclick="goBack()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+          رجوع للرئيسية
+        </button>
+      </div>
+    </header>
+
+    <!-- Section: Store Settings -->
+    <div class="content-area" id="section-store">
+      <div class="set-body">
+
+        <!-- Store Info -->
+        <div class="set-section">
+          <div class="set-section-title">بيانات المحل</div>
+
+          <div class="logo-preview-area">
+            <div class="logo-preview" id="logoPreview">T</div>
+            <div>
+              <button class="btn btn-accent btn-sm" onclick="chooseLogo()">اختر شعار المحل</button>
+              <input type="file" id="logoInput" accept="image/*" style="display:none" onchange="handleLogoUpload(event)" />
+              <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">يظهر على الفاتورة المطبوعة</div>
+            </div>
+          </div>
+
+          <div class="form-group mb-3">
+            <label class="form-label">اسم المحل</label>
+            <input type="text" id="companyName" class="form-control" value="EL-Tarzy" />
+          </div>
+
+          <div class="form-group mb-3">
+            <label class="form-label">العنوان (يظهر على الفاتورة)</label>
+            <input type="text" id="address" class="form-control" placeholder="العنوان بالتفصيل" />
+          </div>
+
+          <div class="form-group mb-3">
+            <label class="form-label">رقم التليفون (يظهر على الفاتورة)</label>
+            <input type="text" id="phone" class="form-control" placeholder="01xxxxxxxxx" />
+          </div>
+
+          <div class="form-group mb-3">
+            <label class="form-label">الرقم الضريبي (اختياري)</label>
+            <input type="text" id="taxNumber" class="form-control" placeholder="الرقم الضريبي" />
+          </div>
+
+          <div class="form-group mb-3">
+            <label class="form-label">العملة</label>
+            <input type="text" id="currency" class="form-control" value="جنيه" />
+          </div>
+        </div>
+
+        <!-- Receipt Settings -->
+        <div class="set-section">
+          <div class="set-section-title">إعدادات الفاتورة</div>
+
+          <div class="form-group mb-3">
+            <label class="form-label">ملاحظات ثابتة على كل فاتورة</label>
+            <textarea id="receiptNotes" class="form-control" rows="3" placeholder="مثال: البضاعة المباعة لا ترد ولا تستبدل بعد 14 يوم"></textarea>
+          </div>
+
+          <div class="form-group mb-4">
+            <label class="form-label">تذييل الفاتورة</label>
+            <input type="text" id="receiptFooter" class="form-control" placeholder="مثال: شكراً لزيارتكم" />
+          </div>
+
+          <div style="border-top:2px solid var(--border); padding-top:16px;">
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">إظهار اسم الخياط على الفاتورة</div>
+                <div class="toggle-hint">يُطبع اسم الموظف/الخياط على الفاتورة</div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="showTailorName" checked />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">إظهار تليفون العميل على الفاتورة</div>
+                <div class="toggle-hint">يُطبع رقم تليفون العميل على الفاتورة</div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="showCustomerPhone" checked />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+          </div>
+
+          <div style="margin-top:24px;text-align:left;">
+            <button class="btn btn-success btn-lg" onclick="saveSettings()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              حفظ جميع الإعدادات
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section: Cashier Permissions -->
+    <div class="content-area" id="section-cashier" style="display:none;">
+      <div style="padding:24px;">
+        <div class="set-section full-width" style="max-width:800px;">
+          <div class="set-section-title">صلاحيات الكاشير</div>
+          <div style="margin-bottom:20px; font-size:13px; color:var(--text-muted);">
+            حدد الصلاحيات التي ترغب في منع الكاشير من الوصول إليها.
+          </div>
+          
+          <div class="set-grid">
+            <div class="checkbox-wrapper" style="grid-column: span 2;">
+              <input type="checkbox" id="preventCashierPriceEdit" onchange="saveCashierPermissions()">
+              <label for="preventCashierPriceEdit">
+                منع تعديل السعر
+                <small style="display:block;color:var(--text-muted);font-size:11px;margin-top:2px;">لا يمكن للكاشير تعديل سعر الصنف في نقطة البيع</small>
+              </label>
+            </div>
+            
+            <div class="checkbox-wrapper" style="grid-column: span 2;">
+              <input type="checkbox" id="cashierHideReports" onchange="saveCashierPermissions()">
+              <label for="cashierHideReports">
+                إخفاء التقارير
+                <small style="display:block;color:var(--text-muted);font-size:11px;margin-top:2px;">منع الكاشير من الدخول إلى صفحة التقارير</small>
+              </label>
+            </div>
+
+            <div class="checkbox-wrapper" style="grid-column: span 2;">
+              <input type="checkbox" id="cashierHideHr" onchange="saveCashierPermissions()">
+              <label for="cashierHideHr">
+                إخفاء شئون الموظفين
+                <small style="display:block;color:var(--text-muted);font-size:11px;margin-top:2px;">منع الكاشير من رؤية قسم الموارد البشرية</small>
+              </label>
+            </div>
+
+            <div class="checkbox-wrapper" style="grid-column: span 2;">
+              <input type="checkbox" id="cashierPreventReturns" onchange="saveCashierPermissions()">
+              <label for="cashierPreventReturns">
+                منع عمل مرتجع
+                <small style="display:block;color:var(--text-muted);font-size:11px;margin-top:2px;">لا يمكن للكاشير الوصول لصفحة المرتجعات</small>
+              </label>
+            </div>
+
+            <div class="checkbox-wrapper" style="grid-column: span 2;">
+              <input type="checkbox" id="cashierHideFinance" onchange="saveCashierPermissions()">
+              <label for="cashierHideFinance">
+                إخفاء الحسابات والخزينة
+                <small style="display:block;color:var(--text-muted);font-size:11px;margin-top:2px;">منع الكاشير من رؤية الحسابات والتعامل المالي</small>
+              </label>
+            </div>
+
+            <div class="checkbox-wrapper" style="grid-column: span 2;">
+              <input type="checkbox" id="cashierPreventDiscount" onchange="saveCashierPermissions()">
+              <label for="cashierPreventDiscount">
+                منع عمل خصم
+                <small style="display:block;color:var(--text-muted);font-size:11px;margin-top:2px;">لا يمكن للكاشير إضافة خصم على الفاتورة</small>
+              </label>
+            </div>
+
+            <div class="checkbox-wrapper" style="grid-column: span 2;">
+              <input type="checkbox" id="cashierPreventSettings" onchange="saveCashierPermissions()">
+              <label for="cashierPreventSettings">
+                منع الوصول للإعدادات
+                <small style="display:block;color:var(--text-muted);font-size:11px;margin-top:2px;">لا يمكن للكاشير فتح صفحة الإعدادات</small>
+              </label>
+            </div>
+          </div>
+          
+          <div style="margin-top:24px;text-align:left;">
+            <button class="btn btn-success btn-lg" onclick="saveSettings()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              حفظ صلاحيات الكاشير
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section: WhatsApp Templates -->
+    <div class="content-area" id="section-wa-templates" style="display:none;">
+      <div style="padding:24px;">
+        <div class="set-section full-width" style="max-width:900px;">
+          <div class="set-section-title">قوالب رسائل الواتساب</div>
+          <div style="margin-bottom:20px; font-size:13px; color:var(--text-muted);">
+            تخصيص الرسائل التي تُرسل للعملاء تلقائياً. المتغيرات المتاحة للاستخدام في النص:<br>
+            <code style="background:#eee;padding:2px 6px;border-radius:4px;color:#d97706;">{customerName}</code> اسم العميل، 
+            <code style="background:#eee;padding:2px 6px;border-radius:4px;color:#d97706;">{invoiceNumber}</code> رقم الفاتورة،
+            <code style="background:#eee;padding:2px 6px;border-radius:4px;color:#d97706;">{shopName}</code> اسم المحل، 
+            <code style="background:#eee;padding:2px 6px;border-radius:4px;color:#d97706;">{total}</code>، 
+            <code style="background:#eee;padding:2px 6px;border-radius:4px;color:#d97706;">{paid}</code>، 
+            <code style="background:#eee;padding:2px 6px;border-radius:4px;color:#d97706;">{remaining}</code>، 
+            <code style="background:#eee;padding:2px 6px;border-radius:4px;color:#d97706;">{address}</code>، 
+            <code style="background:#eee;padding:2px 6px;border-radius:4px;color:#d97706;">{contactPhone}</code>
+          </div>
+
+          <div class="set-grid">
+            <div class="set-group" style="grid-column: span 2;">
+              <label>تأكيد الفاتورة (عند التسجيل)</label>
+              <textarea id="tplInvoiceConfirm" rows="5" style="width:100%;resize:vertical;font-family:inherit;padding:10px;border-radius:var(--radius);border:1px solid var(--border);"></textarea>
+            </div>
+            
+            <div class="set-group" style="grid-column: span 2;">
+              <label>الطلب جاهز للاستلام</label>
+              <textarea id="tplOrderReady" rows="5" style="width:100%;resize:vertical;font-family:inherit;padding:10px;border-radius:var(--radius);border:1px solid var(--border);"></textarea>
+            </div>
+
+            <div class="set-group" style="grid-column: span 2;">
+              <label>تم التسليم بنجاح</label>
+              <textarea id="tplDelivered" rows="5" style="width:100%;resize:vertical;font-family:inherit;padding:10px;border-radius:var(--radius);border:1px solid var(--border);"></textarea>
+            </div>
+
+            <div class="set-group" style="grid-column: span 2;">
+              <label>تسديد الدفعة الأخيرة كاملة (مع الاستلام)</label>
+              <textarea id="tplFullPayment" rows="5" style="width:100%;resize:vertical;font-family:inherit;padding:10px;border-radius:var(--radius);border:1px solid var(--border);"></textarea>
+            </div>
+
+            <div class="set-group" style="grid-column: span 2;">
+              <label>سداد دفعة جزئية من الحساب</label>
+              <textarea id="tplPartialPayment" rows="5" style="width:100%;resize:vertical;font-family:inherit;padding:10px;border-radius:var(--radius);border:1px solid var(--border);"></textarea>
+            </div>
+          </div>
+
+          <div style="margin-top:24px;text-align:left;">
+            <button class="btn btn-success btn-lg" onclick="saveSettings()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              حفظ قوالب الرسائل
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section: User Management -->
+    <div class="content-area" id="section-users" style="display:none;">
+      <div style="padding:24px;">
+        <div class="set-section full-width" style="max-width:100%;">
+          <div class="set-section-title">
+            إدارة المستخدمين
+            <button class="btn btn-accent btn-sm" style="margin-right:auto;" onclick="openNewUserModal()">+ مستخدم جديد</button>
+          </div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>الموظف</th>
+                  <th>اسم المستخدم</th>
+                  <th>الدور</th>
+                  <th>آخر تسجيل دخول</th>
+                  <th>الحالة</th>
+                  <th>إجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody">
+                <tr><td colspan="7" class="table-empty">جارٍ التحميل...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section: Backup -->
+    <div class="content-area" id="section-backup" style="display:none;">
+      <div style="padding:24px; max-width:700px;">
+        <div class="set-section" style="max-width:100%;">
+          <div class="set-section-title">النسخ الاحتياطي واسترجاع البيانات</div>
+
+          <div style="display:flex;gap:12px;margin-bottom:24px;">
+            <button class="btn btn-success btn-lg" onclick="createBackup()">
+              نسخة احتياطية الآن
+            </button>
+          </div>
+
+          <div class="set-section-title" style="font-size:14px;border-bottom:1px solid var(--border);">
+            النسخ المتاحة
+          </div>
+          <div id="backupsList">
+            <div class="table-empty">جارٍ التحميل...</div>
+          </div>
+
+          <!-- Factory Reset Area -->
+          <div style="margin-top:40px; padding-top:20px; border-top:2px dashed var(--danger);">
+            <div class="set-section-title" style="color:var(--danger); border:none; margin-bottom:10px;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:8px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              منطقة الخطر (إعادة ضبط المصنع)
+            </div>
+            <p style="font-size:13px; color:var(--text-secondary); margin-bottom:16px; line-height:1.6;">
+              هذا الإجراء سيقوم بمسح <strong>كافة بيانات النظام بالكامل</strong> (العملاء، الفواتير، الموظفين، الحسابات) وسيعود البرنامج كأنه جديد. لا يمكن التراجع عن هذا الإجراء إلا لو كان لديك نسخة احتياطية.
+            </p>
+            <button class="btn btn-danger" onclick="factoryReset()">
+              إعادة ضبط المصنع ومسح كل البيانات
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section: WhatsApp -->
+    <div class="content-area" id="section-whatsapp" style="display:none;">
+      <div style="padding:24px; max-width:600px;">
+        <div class="set-section" style="max-width:100%;">
+          <div class="set-section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#25d366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+            إعدادات الواتساب
+          </div>
+
+          <!-- حالة الاتصال -->
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:16px; background:var(--bg); border-radius:var(--radius); margin-bottom:20px;">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <div id="waStatusDot" style="width:12px;height:12px;border-radius:50%;background:var(--border);flex-shrink:0;"></div>
+              <div>
+                <div id="waStatusText" style="font-weight:700; font-size:14px;">جاري التحقق...</div>
+                <div id="waStatusHint" style="font-size:11px; color:var(--text-muted);">يرجى الانتظار</div>
+              </div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn btn-sm btn-outline" id="waRefreshBtn" onclick="checkWaStatus()">تحديث</button>
+              <button class="btn btn-sm btn-danger" id="waDisconnectBtn" onclick="disconnectWa()" style="display:none;">قطع الاتصال</button>
+            </div>
+          </div>
+
+          <!-- QR Code -->
+          <div id="waQrSection" style="display:none; text-align:center; padding:20px; background:var(--bg); border-radius:var(--radius); margin-bottom:20px;">
+            <div style="font-size:14px; font-weight:700; margin-bottom:12px; color:var(--accent);">📱 امسح الكود لربط واتساب</div>
+            <div style="background:#fff; border-radius:12px; padding:16px; display:inline-block; box-shadow: 0 4px 20px rgba(37,211,102,0.2);">
+              <img id="waQrImage" src="" alt="QR Code" style="width:200px;height:200px;display:block;" />
+            </div>
+            <div style="margin-top:12px; font-size:12px; color:var(--text-muted); line-height:1.6;">
+              واتساب ← النقاط الثلاث ← الأجهزة المرتبطة ← ربط جهاز
+            </div>
+            <div id="waQrTimer" style="margin-top:8px; font-size:12px; color:var(--warning);"></div>
+          </div>
+
+          <!-- معلومات -->
+          <div style="background:var(--bg); border-radius:var(--radius); padding:16px;">
+            <div style="font-size:13px; font-weight:700; margin-bottom:10px;">كيف يعمل؟</div>
+            <div style="font-size:12px; color:var(--text-muted); line-height:2;">
+              ✂️ بعد الربط، البرنامج يقدر يبعت واتساب للعملاء تلقائياً عند:<br>
+              • تأكيد الفاتورة الجديدة<br>
+              • تغيير حالة الطلب لـ "جاهز للاستلام"<br>
+              • إرسال تذكير بالمبلغ المتبقي<br><br>
+              🔒 الجلسة بتتحفظ تلقائياً — مش هتحتاج تربط مرة تانية
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- New User Modal -->
+<div class="modal-overlay" id="newUserModal">
+  <div class="modal modal-sm" style="max-width:420px;">
+    <div class="modal-header">
+      <div class="modal-title">مستخدم جديد</div>
+      <button class="modal-close" onclick="closeModal('newUserModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group mb-3">
+        <label class="form-label">الموظف</label>
+        <select id="newUserEmployee" class="form-control">
+          <option value="">اختر الموظف</option>
+        </select>
+      </div>
+      <div class="form-group mb-3">
+        <label class="form-label">اسم المستخدم *</label>
+        <input type="text" id="newUserUsername" class="form-control" placeholder="اسم المستخدم للدخول" autocomplete="off" />
+      </div>
+      <div class="form-group mb-3">
+        <label class="form-label">كلمة المرور *</label>
+        <input type="password" id="newUserPassword" class="form-control" placeholder="كلمة المرور" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">الدور</label>
+        <select id="newUserRole" class="form-control">
+          <option value="cashier">كاشير</option>
+          <option value="admin">أدمن (مدير)</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-success" onclick="createUser()">حفظ المستخدم</button>
+      <button class="btn btn-outline" onclick="closeModal('newUserModal')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div class="modal-overlay" id="resetPasswordModal">
+  <div class="modal modal-sm" style="max-width:380px;">
+    <div class="modal-header">
+      <div class="modal-title">إعادة تعيين كلمة المرور</div>
+      <button class="modal-close" onclick="closeModal('resetPasswordModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">
+        المستخدم: <strong id="resetUserName">—</strong>
+      </p>
+      <div class="form-group">
+        <label class="form-label">كلمة المرور الجديدة</label>
+        <input type="password" id="newPasswordInput" class="form-control" placeholder="أدخل كلمة المرور الجديدة" />
+      </div>
+      <input type="hidden" id="resetUserId" />
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-success" onclick="confirmResetPassword()">تأكيد</button>
+      <button class="btn btn-outline" onclick="closeModal('resetPasswordModal')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- Quit confirmation -->
+<div class="modal-overlay" id="quitModal">
+  <div class="modal modal-sm" style="max-width:420px;">
+    <div class="modal-header"><div class="modal-title">إغلاق البرنامج</div></div>
+    <div class="modal-body" style="text-align:center;">
+      <p style="font-size:14px;font-weight:600;">هل تريد إنشاء نسخة احتياطية قبل الخروج؟</p>
+    </div>
+    <div class="modal-footer" style="justify-content:center;gap:8px;">
+      <button class="btn btn-success" onclick="window.electron.quitWithBackup()">نسخ وخروج</button>
+      <button class="btn btn-danger" onclick="window.electron.quitWithoutBackup()">خروج بدون نسخة</button>
+      <button class="btn btn-outline" onclick="document.getElementById('quitModal').classList.remove('open'); window.electron.cancelQuit();">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/shared/common.js"></script>
+<script src="js/settings.js"></script>
+</body>
+</html>

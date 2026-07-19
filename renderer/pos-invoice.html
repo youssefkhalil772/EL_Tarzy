@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>EL-TARZY — نقطة البيع والفواتير</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../styles/global.css" />
+  <script src="../node_modules/sweetalert2/dist/sweetalert2.all.min.js"></script>
+  <style>
+    body { overflow: hidden; }
+    .pos-layout {
+      display: flex;
+      height: 100vh;
+      flex-direction: row-reverse;
+      background: var(--bg);
+    }
+    /* Sidebar panel for categories and services */
+    .sidebar-panel {
+      width: 440px;
+      background: var(--bg-secondary);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+    .cat-list {
+      display: flex;
+      gap: 6px;
+      padding: 10px;
+      background: var(--primary-dark);
+      overflow-x: auto;
+      flex-shrink: 0;
+    }
+    .cat-list::-webkit-scrollbar { height: 6px; }
+    .cat-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+    .cat-btn {
+      flex: 0 0 auto;
+      padding: 8px 16px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px;
+      color: rgba(255,255,255,0.7);
+      font-family: var(--font);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all var(--transition);
+      line-height: 1.3;
+    }
+    .cat-btn:hover { background: rgba(201,168,76,0.2); color: var(--accent); border-color: var(--accent); }
+    .cat-btn.active { background: var(--accent); color: #fff; border-color: transparent; }
+
+    .svc-grid {
+      flex: 1;
+      padding: 10px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-auto-rows: min-content;
+      gap: 8px;
+      overflow-y: auto;
+    }
+    .svc-grid::-webkit-scrollbar { width: 6px; }
+    .svc-grid::-webkit-scrollbar-thumb { background: var(--border-hover); border-radius: 4px; }
+    .svc-btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 6px;
+      text-align: center;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      transition: all var(--transition);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .svc-btn:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow); }
+    .svc-btn .s-name { font-size: 11px; font-weight: 700; color: var(--text); line-height: 1.3; }
+    .svc-btn .s-price { font-size: 11px; font-weight: 800; color: var(--success); }
+
+    /* Main POS area */
+    .pos-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* POS Header */
+    .pos-header {
+      background: var(--primary);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    .pos-header-field { display: flex; flex-direction: column; gap: 2px; }
+    .pos-header-field label { font-size: 10px; color: rgba(255,255,255,0.5); font-weight: 600; }
+    .pos-header-field input,
+    .pos-header-field select {
+      height: 32px;
+      padding: 0 8px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 5px;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      font-family: var(--font);
+      font-size: 12px;
+      font-weight: 600;
+      min-width: 140px;
+    }
+    .pos-header-field input::placeholder { color: rgba(255,255,255,0.4); }
+    .pos-header-field input:focus,
+    .pos-header-field select:focus { outline: none; border-color: var(--accent); background: rgba(255,255,255,0.15); }
+    .pos-header-field select option { background: var(--primary); color: #fff; }
+    .inv-number-badge {
+      background: var(--accent);
+      color: #fff;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .new-customer-btn {
+      height: 32px;
+      padding: 0 10px;
+      background: var(--success);
+      border: none;
+      border-radius: 5px;
+      color: #fff;
+      font-family: var(--font);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all var(--transition);
+    }
+    .new-customer-btn:hover { background: #24875a; }
+
+    /* Item Entry Bar */
+    .item-entry-bar {
+      background: var(--card);
+      border-bottom: 2px solid var(--border);
+      padding: 8px 14px;
+      display: flex;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .item-entry-bar .form-control { height: 34px; font-size: 12px; }
+    .item-entry-bar .form-group { margin: 0; }
+    .item-entry-bar label { font-size: 10px; font-weight: 600; color: var(--text-muted); margin-bottom: 3px; display: block; }
+    .add-item-btn {
+      height: 34px;
+      padding: 0 18px;
+      background: var(--accent);
+      border: none;
+      border-radius: var(--radius-sm);
+      color: #fff;
+      font-family: var(--font);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all var(--transition);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .add-item-btn:hover { background: var(--accent-hover); }
+
+    /* Invoice Table */
+    .invoice-table-area {
+      flex: 1;
+      overflow-y: auto;
+      background: var(--card);
+    }
+    .invoice-table-area table thead th {
+      background: var(--primary);
+      font-size: 11px;
+      padding: 8px 10px;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+    .invoice-table-area table td {
+      padding: 7px 10px;
+      font-size: 12px;
+      vertical-align: middle;
+    }
+    .qty-input {
+      width: 60px;
+      height: 28px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      text-align: center;
+      font-family: var(--font);
+      font-size: 12px;
+      padding: 0 4px;
+    }
+    .qty-input:focus { outline: none; border-color: var(--accent); }
+    .delete-row-btn {
+      width: 26px; height: 26px;
+      border: none;
+      background: var(--danger-light);
+      color: var(--danger);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all var(--transition);
+    }
+    .delete-row-btn:hover { background: var(--danger); color: #fff; }
+
+    /* Payment Section */
+    .payment-panel {
+      background: var(--card);
+      border-top: 2px solid var(--border);
+      padding: 10px 16px;
+      flex-shrink: 0;
+    }
+    .payment-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+      gap: 10px;
+      align-items: end;
+      margin-bottom: 10px;
+    }
+    .payment-panel .form-control { height: 34px; font-size: 12px; }
+    .payment-panel label { font-size: 10px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 3px; }
+
+    .total-strip {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: var(--primary);
+      border-radius: var(--radius-sm);
+      padding: 8px 16px;
+      margin-bottom: 10px;
+    }
+    .total-item { display: flex; flex-direction: column; align-items: center; }
+    .total-item-label { font-size: 9px; color: rgba(255,255,255,0.5); font-weight: 600; }
+    .total-item-value { font-size: 14px; font-weight: 700; color: #fff; }
+    .total-item-value.accent { color: var(--accent); font-size: 18px; }
+    .total-sep { color: rgba(255,255,255,0.2); font-size: 20px; }
+
+    /* Action Buttons */
+    .action-bar {
+      display: flex;
+      gap: 8px;
+    }
+    .action-bar .btn { height: 36px; font-size: 12px; padding: 0 14px; }
+
+    /* Receipt hidden until print */
+    .receipt-print { display: none; }
+    @media print {
+      body > *:not(.receipt-print) { display: none !important; }
+      .receipt-print { display: block !important; }
+    }
+  </style>
+</head>
+<body>
+<div class="pos-layout">
+
+  <!-- Sidebar Panel (rightmost) -->
+  <div class="sidebar-panel">
+    <!-- Fix 4: Product search field -->
+    <div style="padding:8px 10px 4px; background:var(--primary-dark); flex-shrink:0;">
+      <input type="text" id="svcSearchInput" class="form-control"
+        placeholder="بحث بالاسم أو الكود..."
+        oninput="filterServicesBySearch(this.value)"
+        style="width:100%; height:30px; font-size:12px; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); color:#fff; border-radius:5px; padding:0 8px;"
+      />
+    </div>
+    <div class="cat-list" id="categoryBtns">
+      <div class="cat-btn active" onclick="selectCategory(0, this)">الكل</div>
+    </div>
+    <div class="svc-grid" id="servicesGrid">
+      <!-- Service buttons injected here -->
+    </div>
+  </div>
+
+  <!-- Main POS Area -->
+  <div class="pos-main">
+
+    <!-- POS Header -->
+    <div class="pos-header">
+      <!-- Back -->
+      <button style="background:transparent;border:none;color:rgba(255,255,255,0.7);cursor:pointer;font-size:20px;padding:0 6px;" onclick="goBack()" title="رجوع">←</button>
+      
+      <div id="posLogoContainer" class="sidebar-logo" style="margin:0; padding:0; border:none; background:transparent;">
+        <div class="logo-icon" id="posLogoIcon" style="width:36px; height:36px; font-size:18px;">T</div>
+        <div>
+          <div class="logo-text" style="font-size:16px;">EL-TARZY</div>
+          <div class="logo-sub" style="font-size:10px;">نظام إدارة محل الترزي</div>
+        </div>
+      </div>
+
+      <!-- Suspended Invoices -->
+      <button style="background:var(--warning);border:none;color:#fff;cursor:pointer;font-size:12px;padding:6px 12px;border-radius:6px;font-weight:bold;margin-right:8px;" onclick="openSuspendedModal()">المعلقة <span id="suspendedCountBadge" style="background:#fff;color:var(--warning);border-radius:10px;padding:2px 6px;margin-right:4px;">0</span></button>
+
+      <!-- Invoices History -->
+      <button style="background:var(--accent);border:none;color:#fff;cursor:pointer;font-size:12px;padding:6px 12px;border-radius:6px;font-weight:bold;" onclick="openHistoryModal()">سجل الفواتير</button>
+
+      <!-- Invoice Number -->
+      <div class="pos-header-field">
+        <label>رقم الفاتورة</label>
+        <div class="inv-number-badge" id="invoiceNumberDisplay">INV-2026-0000</div>
+      </div>
+
+      <!-- Date -->
+      <div class="pos-header-field">
+        <label>التاريخ</label>
+        <input type="date" id="invoiceDate" style="min-width:130px;" />
+      </div>
+
+      <!-- Customer -->
+      <div class="pos-header-field" style="min-width:180px; position:relative;">
+        <label>العميل</label>
+        <input list="customersList" id="customerSearchInput" class="form-control" style="background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.2);" placeholder="بحث بالاسم أو الرقم..." onchange="handleCustomerSelect()">
+        <datalist id="customersList"></datalist>
+        <input type="hidden" id="customerSelect" value="">
+      </div>
+      <button class="new-customer-btn" onclick="openNewCustomerModal()">+ عميل</button>
+
+      <!-- Employee -->
+      <div class="pos-header-field" style="min-width:140px;">
+        <label>الكاشير</label>
+        <select id="employeeSelect" style="min-width:140px;"></select>
+      </div>
+
+      <!-- Tailor -->
+      <div class="pos-header-field" style="min-width:140px;">
+        <label>الخياط المنفذ</label>
+        <select id="tailorSelect" style="min-width:140px;"></select>
+      </div>
+
+      <!-- Treasury (kept) -->
+      <div class="pos-header-field">
+        <label>الخزينة</label>
+        <select id="treasuryType" style="min-width:130px;">
+          <option value="الخزينة">الخزينة</option>
+          <option value="فودافون كاش">فودافون كاش</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Item Entry Bar -->
+    <div class="item-entry-bar">
+      <div class="form-group" style="display:none;">
+        <label>القسم</label>
+        <select id="itemCategory" class="form-control" onchange="loadCategoryServices()">
+          <option value="">الكل</option>
+        </select>
+      </div>
+      <div class="form-group" style="display:none;">
+        <label>الخدمة / الصنف</label>
+        <select id="itemService" class="form-control" onchange="onServiceSelect()">
+          <option value="">اختر الخدمة</option>
+        </select>
+      </div>
+      <div class="form-group" style="width:180px;">
+        <label>البحث بالباركود</label>
+        <input type="text" id="itemBarcode" class="form-control" placeholder="امسح أو اكتب" onkeydown="if(event.key==='Enter') lookupBarcode()" />
+      </div>
+      <!-- We leave these hidden but available for lookupBarcode logic to work -->
+      <div class="form-group" style="display:none;">
+        <input type="number" id="itemPrice" class="form-control" placeholder="0.00" step="0.5" />
+        <input type="number" id="itemQty" class="form-control" value="1" min="1" />
+        <input type="number" id="itemDiscount" class="form-control" placeholder="0" value="0" />
+      </div>
+      <button class="add-item-btn" onclick="lookupBarcode()" style="margin-right:auto;">إضافة بالباركود</button>
+    </div>
+
+    <!-- Invoice Items Table -->
+    <div class="invoice-table-area">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:32px;">#</th>
+            <th>القسم</th>
+            <th>الخدمة</th>
+            <th>الكود</th>
+            <th>السعر</th>
+            <th style="width:80px;">الكمية</th>
+            <th>خصم</th>
+            <th>الإجمالي</th>
+            <th style="width:40px;"></th>
+          </tr>
+        </thead>
+        <tbody id="invoiceItemsBody">
+          <tr id="emptyRow">
+            <td colspan="9" class="table-empty">
+              <div style="font-size:32px;margin-bottom:8px;"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--accent);"><path d="M9 12h6M9 16h6M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>
+              ابدأ بإضافة خدمات للفاتورة
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Payment Panel -->
+    <div class="payment-panel">
+      <!-- Totals Strip -->
+      <div class="total-strip">
+        <div class="total-item">
+          <div class="total-item-label">عدد الأصناف</div>
+          <div class="total-item-value" id="totalQtyDisplay">0</div>
+        </div>
+        <div class="total-sep">|</div>
+        <div class="total-item">
+          <div class="total-item-label">الإجمالي قبل الخصم</div>
+          <div class="total-item-value" id="subtotalDisplay">0.00</div>
+        </div>
+        <div class="total-sep">|</div>
+        <div class="total-item">
+          <div class="total-item-label">الخصم</div>
+          <div class="total-item-value" style="color:#f87171;" id="discountDisplay">0.00</div>
+        </div>
+        <div class="total-sep">|</div>
+        <div class="total-item">
+          <div class="total-item-label">الصافي</div>
+          <div class="total-item-value accent" id="netTotalDisplay">0.00</div>
+        </div>
+        <div class="total-sep">|</div>
+        <div class="total-item">
+          <div class="total-item-label">المدفوع</div>
+          <div class="total-item-value" style="color:#4ade80;" id="paidDisplay">0.00</div>
+        </div>
+        <div class="total-sep">|</div>
+        <div class="total-item">
+          <div class="total-item-label">الباقي</div>
+          <div class="total-item-value" style="color:#fb923c;" id="remainingDisplay">0.00</div>
+        </div>
+      </div>
+
+      <!-- Payment Fields -->
+      <div class="payment-grid">
+        <div>
+          <label>خصم %</label>
+          <input type="number" id="discountPercent" class="form-control" placeholder="0" value="0" min="0" max="100" oninput="recalcTotals()" />
+        </div>
+        <div>
+          <label>خصم (جنيه)</label>
+          <input type="number" id="discountAmount" class="form-control" placeholder="0" value="0" min="0" oninput="recalcTotals()" />
+        </div>
+        <div>
+          <label>المبلغ المدفوع</label>
+          <input type="number" id="amountPaid" class="form-control" placeholder="0" value="0" oninput="recalcTotals()" />
+        </div>
+        <div>
+          <label>ملاحظات الفاتورة</label>
+          <input type="text" id="invoiceNotes" class="form-control" placeholder="أي ملاحظات..." />
+        </div>
+        <div style="display:flex;align-items:flex-end;">
+          <button class="btn btn-success w-full" onclick="payFull()" style="height:34px;font-size:12px;">دفع كامل</button>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-bar">
+        <button class="btn btn-success" onclick="saveInvoice()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          حفظ
+        </button>
+        <button class="btn btn-primary" onclick="saveAndPrint()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          حفظ وطباعة
+        </button>
+        <button class="btn" style="background:#25D366;color:#fff;" onclick="savePrintAndWhatsApp()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+          حفظ وطباعة وواتساب
+        </button>
+        <button class="btn btn-warning" onclick="resetInvoice()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2v6h6"/><path d="M3 8C5.3 4.9 8.9 3 13 3c5.5 0 10 4.5 10 10s-4.5 10-10 10c-4.1 0-7.7-1.9-10-5"/></svg>
+          جديد
+        </button>
+        <button class="btn btn-info" onclick="suspendInvoice()">
+          تعليق الفاتورة
+        </button>
+        <button class="btn btn-danger" onclick="deleteInvoice()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          حذف
+        </button>
+        <button class="btn btn-outline" onclick="goBack()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+          رجوع
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- New Customer Modal -->
+<div class="modal-overlay" id="newCustomerModal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <div class="modal-title">عميل جديد</div>
+      <button class="modal-close" onclick="closeModal('newCustomerModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="flex flex-col gap-3">
+        <div class="form-group">
+          <label class="form-label">الاسم *</label>
+          <input type="text" id="nc_name" class="form-control" placeholder="اسم العميل" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">التليفون / رقم الواتساب</label>
+          <input type="text" id="nc_phone" class="form-control" placeholder="01xxxxxxxxx" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">العنوان</label>
+          <input type="text" id="nc_address" class="form-control" placeholder="العنوان" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">الرصيد الافتتاحي (جنيه)</label>
+          <input type="number" id="nc_balance" class="form-control" placeholder="0" value="0" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-success" onclick="saveNewCustomer()">حفظ</button>
+      <button class="btn btn-outline" onclick="closeModal('newCustomerModal')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- Saved Invoice Success Modal -->
+<div class="modal-overlay" id="savedModal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <div class="modal-title" style="color:var(--success);"> تم حفظ الفاتورة</div>
+      <button class="modal-close" onclick="closeModal('savedModal')">✕</button>
+    </div>
+    <div class="modal-body" style="text-align:center;">
+      <div style="font-size:48px;margin-bottom:12px;"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="1.5"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+      <div style="font-size:16px;font-weight:700;color:var(--primary);" id="savedInvNum"></div>
+      <div style="font-size:13px;color:var(--text-muted);margin-top:8px;" id="savedInvTotal"></div>
+    </div>
+    <div class="modal-footer" style="justify-content:center;gap:8px;">
+      <button class="btn btn-primary" onclick="printAndReset()">طباعة وفاتورة جديدة</button>
+      <button class="btn btn-success" onclick="newInvoice()">فاتورة جديدة</button>
+      <button class="btn btn-outline" id="savedModalWaBtn" onclick="sendWhatsApp()" style="background:#25d366;color:#fff;border-color:#25d366;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="margin-left:4px;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+        واتساب
+      </button>
+    </div>
+  </div>
+</div>
+<!-- Invoices History Modal -->
+<div class="modal-overlay" id="historyModal">
+  <div class="modal modal-md">
+    <div class="modal-header">
+      <div class="modal-title">سجل الفواتير</div>
+      <button class="modal-close" onclick="closeModal('historyModal')">✕</button>
+    </div>
+    <div class="modal-body" style="max-height:60vh; overflow-y:auto; padding:0;">
+      <div style="padding:10px; background:var(--bg); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:10;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <input type="text" id="posHistorySearch" class="form-control" placeholder="بحث برقم الفاتورة أو اسم العميل..." oninput="filterPosHistory()" style="flex:1;min-width:160px;" />
+          <input type="text" id="posHistoryPhone" class="form-control" placeholder="بحث برقم الموبايل..." oninput="filterPosHistory()" style="width:160px;" />
+          <select id="posHistoryTailor" class="form-control" onchange="filterPosHistory()" style="width:140px;">
+            <option value="">كل الخياطين</option>
+          </select>
+        </div>
+      </div>
+      <table style="width:100%; border-collapse:collapse; text-align:right;">
+        <thead style="background:var(--bg); border-bottom:2px solid var(--border); position:sticky; top:54px; z-index:9;">
+          <tr>
+            <th style="padding:12px; font-size:12px;">رقم الفاتورة</th>
+            <th style="padding:12px; font-size:12px;">العميل</th>
+            <th style="padding:12px; font-size:12px;">الخياط</th>
+            <th style="padding:12px; font-size:12px;">الإجمالي</th>
+            <th style="padding:12px; font-size:12px;">التاريخ والوقت</th>
+            <th style="padding:12px; font-size:12px; text-align:center;">إجراء</th>
+          </tr>
+        </thead>
+        <tbody id="historyTableBody">
+          <!-- Populated via JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<!-- Suspended Invoices Modal -->
+<div class="modal-overlay" id="suspendedModal">
+  <div class="modal modal-md">
+    <div class="modal-header">
+      <div class="modal-title">الفواتير المعلقة</div>
+      <button class="modal-close" onclick="closeModal('suspendedModal')">✕</button>
+    </div>
+    <div class="modal-body" style="max-height:60vh; overflow-y:auto; padding:0;">
+      <table style="width:100%; border-collapse:collapse; text-align:right;">
+        <thead style="background:var(--bg); border-bottom:2px solid var(--border); position:sticky; top:0; z-index:9;">
+          <tr>
+            <th style="padding:12px; font-size:12px;">الوقت</th>
+            <th style="padding:12px; font-size:12px;">العميل</th>
+            <th style="padding:12px; font-size:12px;">الأصناف</th>
+            <th style="padding:12px; font-size:12px;">الإجمالي</th>
+            <th style="padding:12px; font-size:12px; text-align:center;">إجراء</th>
+          </tr>
+        </thead>
+        <tbody id="suspendedTableBody">
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- 80mm Receipt (hidden, shown on print) -->
+<div class="receipt-print" id="receiptPrint"></div>
+
+<script src="js/shared/common.js"></script>
+<script src="js/pos-invoice.js"></script>
+</body>
+</html>

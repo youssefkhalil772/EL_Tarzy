@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EL-TARZY — الشاشة الرئيسية</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../styles/global.css" />
+  <style>
+    .actions-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      padding: 24px;
+    }
+
+    .action-btn.blue .action-btn-icon { background: var(--info-light); color: var(--info); }
+    .action-btn.green .action-btn-icon { background: var(--success-light); color: var(--success); }
+    .action-btn.gold .action-btn-icon { background: var(--accent-light); color: var(--accent); }
+    .action-btn.red .action-btn-icon { background: var(--danger-light); color: var(--danger); }
+    .action-btn.navy .action-btn-icon { background: rgba(27,42,74,0.1); color: var(--primary); }
+    .action-btn.purple .action-btn-icon { background: rgba(139,92,246,0.1); color: #7C3AED; }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      padding: 0 24px 16px;
+    }
+
+    .today-label {
+      padding: 0 24px 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .section-label {
+      padding: 16px 24px 4px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .whatsapp-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      background: #25D366;
+      border: none;
+      border-radius: 50px;
+      color: #fff;
+      font-family: var(--font);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .whatsapp-btn:hover { background: #128C7E; box-shadow: var(--shadow); }
+
+    .clock-display {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--primary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .date-display {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .shift-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px;
+      background: var(--success-light);
+      border: 1px solid var(--success);
+      border-radius: 50px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--success);
+    }
+
+    .shift-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--success);
+      border-radius: 50%;
+      animation: pulse 1.5s ease infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .sidebar-nav-item span.badge-count {
+      margin-right: auto;
+      margin-left: 0;
+      background: var(--accent);
+      color: #fff;
+      font-size: 10px;
+      padding: 1px 7px;
+      border-radius: 10px;
+    }
+
+    .alert-banner {
+      margin: 0 24px 0;
+      padding: 10px 16px;
+      background: linear-gradient(135deg, var(--accent-light), rgba(201,168,76,0.05));
+      border: 1px solid rgba(201,168,76,0.3);
+      border-radius: var(--radius);
+      font-size: 12px;
+      color: #7A5C1E;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <!-- Sidebar (right, RTL) -->
+  <aside class="sidebar">
+    <div style="padding-top:20px;"></div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">القوائم الرئيسية</div>
+
+      <div class="sidebar-nav-item active" onclick="navigate('main-dashboard.html')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        الرئيسية
+      </div>
+
+      <div class="sidebar-nav-item" onclick="navigate('pos-invoice.html')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><path d="M9 12h6M9 16h4"/></svg>
+        نقطة البيع
+      </div>
+
+      <div class="sidebar-nav-item" onclick="navigate('returns.html')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2v6h6"/><path d="M3 8C5.3 4.9 8.9 3 13 3c5.5 0 10 4.5 10 10s-4.5 10-10 10c-4.1 0-7.7-1.9-10-5"/></svg>
+        المرتجعات
+      </div>
+
+      <div class="sidebar-nav-item" onclick="navigate('customers.html')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        إدارة العملاء
+      </div>
+    </div>
+
+    <div class="sidebar-section admin-only">
+      <div class="sidebar-section-title">الموارد البشرية</div>
+
+      <div class="sidebar-nav-item" onclick="navigate('hr.html')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        شئون الموظفين
+      </div>
+    </div>
+
+    <div class="sidebar-section admin-only">
+      <div class="sidebar-section-title">المالية والمخازن</div>
+
+      <div class="sidebar-nav-item" onclick="navigate('finance.html')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        الحسابات
+      </div>
+
+      <div class="sidebar-nav-item" onclick="navigate('services.html')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+        الخدمات والأصناف
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">التقارير والإعدادات</div>
+
+      <div class="sidebar-nav-item" onclick="navigate('reports.html')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        التقارير
+      </div>
+
+      <div class="sidebar-nav-item admin-only" onclick="navigate('settings.html')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        الإعدادات
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div>EL-TARZY v1.0</div>
+      <div>Dev Blue Tech © 2026</div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Header -->
+    <header class="app-header">
+      <div style="display:flex; align-items:center; gap:20px;">
+        <div style="display:flex; align-items:center; gap:10px;" id="navbarLogoContainer">
+          <div class="logo-icon" id="navbarLogoIcon" style="width:40px; height:40px; background:var(--accent); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:900; color:#fff;">T</div>
+          <div>
+            <div class="logo-text" id="navbarLogoText" style="font-size:16px; font-weight:800; color:var(--primary);">EL-TARZY</div>
+            <div class="logo-sub" style="font-size:11px; color:var(--text-muted); font-weight:600;">نظام إدارة محل الترزي</div>
+          </div>
+        </div>
+        
+        <div style="width:1px; height:30px; background:var(--border);"></div>
+
+        <div>
+          <div class="clock-display" id="clockDisplay">00:00:00</div>
+          <div class="date-display" id="dateDisplay">—</div>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div class="shift-indicator" id="shiftIndicator" style="display:none">
+          <div class="shift-dot"></div>
+          <span>شيفت جارٍ</span>
+        </div>
+
+        <div class="header-user">
+          <div class="header-user-avatar" id="userAvatarLetter">م</div>
+          <span id="currentUserName">مدير النظام</span>
+          <span id="userRoleBadge" style="font-size:10px;background:var(--primary);color:#fff;padding:2px 8px;border-radius:50px;margin-right:4px;">أدمن</span>
+        </div>
+
+        <button class="whatsapp-btn" onclick="openWhatsApp()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+          واتساب
+        </button>
+
+        <button class="btn btn-danger btn-sm" onclick="handleLogout()" style="border-radius:50px;">
+          تسجيل خروج
+        </button>
+      </div>
+    </header>
+
+    <!-- ─── Trial Banner ──────────────────────────────────────────────────────── -->
+    <div id="trialBanner" style="display:none; background:linear-gradient(135deg,#92400e,#78350f); border-bottom:1px solid rgba(251,191,36,0.3); padding:10px 24px; align-items:center; justify-content:space-between; gap:16px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:18px;">⏳</span>
+        <span id="trialBannerText" style="font-size:13px;font-weight:700;color:#FCD34D;">أنت في فترة التجربة المجانية</span>
+      </div>
+      <button onclick="window.electron.navigate('activation.html')" style="background:linear-gradient(135deg,#C9A84C,#E8C46A);border:none;border-radius:50px;color:#1B2A4A;font-family:var(--font);font-size:12px;font-weight:800;padding:8px 20px;cursor:pointer;white-space:nowrap;flex-shrink:0;">🛒 اشترِ النظام الآن</button>
+    </div>
+
+    <!-- Scrollable Content -->
+    <div class="content-area" style="padding:0; overflow-y:auto;">
+
+      <!-- Today Stats -->
+      <div class="today-label" style="padding:20px 24px 8px;">إحصائيات اليوم</div>
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-icon gold"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--success);"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8v2m0 8v2m9-6a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+          <div class="stat-body">
+            <div class="stat-value" id="todaySales">0</div>
+            <div class="stat-label">مبيعات اليوم (جنيه)</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--accent);"><path d="M9 12h6M9 16h6M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>
+          <div class="stat-body">
+            <div class="stat-value" id="dailyNetCash">0</div>
+            <div class="stat-label">صافي الدرج اليوم</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--primary);"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+          <div class="stat-body">
+            <div class="stat-value" id="dailyNetVodafone">0</div>
+            <div class="stat-label">صافي فودافون كاش اليوم</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon red"></div>
+          <div class="stat-body">
+            <div class="stat-value" id="todayExpenses">0</div>
+            <div class="stat-label">مصروفات اليوم (جنيه)</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon navy"></div>
+          <div class="stat-body">
+            <div class="stat-value" id="todayAdvances">0</div>
+            <div class="stat-label">سلف اليوم (جنيه)</div>
+          </div>
+        </div>
+        <div class="stat-card admin-only" style="display:none;">
+          <div class="stat-icon purple"></div>
+          <div class="stat-body">
+            <div class="stat-value" id="treasuryBalance">0</div>
+            <div class="stat-label">رصيد الخزينة (جنيه)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Action Buttons -->
+      <div class="section-label">العمليات الرئيسية</div>
+      <div class="actions-grid">
+        <button class="action-btn blue" id="btnAttendance" onclick="handleAttendance()">
+          <div class="action-btn-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="action-btn-label">حضور</div>
+        </button>
+
+        <button class="action-btn green" onclick="navigate('pos-invoice.html')">
+          <div class="action-btn-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+          </div>
+          <div class="action-btn-label">فاتورة بيع</div>
+        </button>
+
+        <button class="action-btn red" onclick="navigate('returns.html')">
+          <div class="action-btn-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2v6h6"/><path d="M3 8C5.3 4.9 8.9 3 13 3c5.5 0 10 4.5 10 10s-4.5 10-10 10c-4.1 0-7.7-1.9-10-5"/></svg>
+          </div>
+          <div class="action-btn-label">مرتجع بيع</div>
+        </button>
+
+        <button class="action-btn gold" onclick="showNewCustomerModal()">
+          <div class="action-btn-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+          </div>
+          <div class="action-btn-label">عميل جديد</div>
+        </button>
+
+
+
+        <button class="action-btn purple" onclick="navigate('finance.html')">
+          <div class="action-btn-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <div class="action-btn-label">الحسابات</div>
+        </button>
+
+        <button class="action-btn green" onclick="showPartnersModal()">
+          <div class="action-btn-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="action-btn-label">إدارة الشركاء</div>
+        </button>
+
+        <button class="action-btn red" id="btnCheckout" onclick="handleCheckout()">
+          <div class="action-btn-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 8 8 12 12 16"/><line x1="16" y1="12" x2="8" y2="12"/></svg>
+          </div>
+          <div class="action-btn-label">انصراف</div>
+        </button>
+
+        <button class="action-btn navy" onclick="navigate('hr.html')">
+          <div class="action-btn-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="action-btn-label">شئون الموظفين</div>
+        </button>
+
+        <button class="action-btn gold" onclick="navigate('reports.html')">
+          <div class="action-btn-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          </div>
+          <div class="action-btn-label">التقارير</div>
+        </button>
+
+        <button class="action-btn blue" onclick="endShift()">
+          <div class="action-btn-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          </div>
+          <div class="action-btn-label">نهاية الشيفت</div>
+        </button>
+
+        <button class="action-btn green" onclick="navigate('services.html')">
+          <div class="action-btn-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+          </div>
+          <div class="action-btn-label">الخدمات</div>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Quick Access Footer -->
+    <footer class="quick-footer">
+      <button class="quick-btn" onclick="navigate('pos-invoice.html')" title="F1">
+        <span class="key-badge">F1</span> فاتورة سريعة
+      </button>
+      <button class="quick-btn" onclick="navigate('reports.html')" title="F2">
+        <span class="key-badge">F2</span> تقرير يومي
+      </button>
+      <button class="quick-btn" onclick="navigate('finance.html')" title="F3">
+        <span class="key-badge">F3</span> مصروفات
+      </button>
+      <button class="quick-btn" onclick="showAdvanceModal()" title="F4">
+        <span class="key-badge">F4</span> سلفة
+      </button>
+      <div style="margin-right: auto; color: rgba(255,255,255,0.3); font-size: 11px;">
+        EL-TARZY — Dev Blue Tech © 2026
+      </div>
+    </footer>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- New Customer Modal -->
+<div class="modal-overlay" id="newCustomerModal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <div class="modal-title">عميل جديد</div>
+      <button class="modal-close" onclick="closeModal('newCustomerModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="flex flex-col gap-3">
+        <div class="form-group">
+          <label class="form-label">الاسم *</label>
+          <input type="text" id="newCustName" class="form-control" placeholder="اسم العميل" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">التليفون / رقم الواتساب</label>
+          <input type="text" id="newCustPhone" class="form-control" placeholder="01xxxxxxxxx" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">العنوان</label>
+          <input type="text" id="newCustAddress" class="form-control" placeholder="العنوان" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">الرصيد الافتتاحي (جنيه)</label>
+          <input type="number" id="newCustBalance" class="form-control" placeholder="0" value="0" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-success" onclick="saveNewCustomer()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        حفظ
+      </button>
+      <button class="btn btn-outline" onclick="closeModal('newCustomerModal')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Supplier Modal -->
+<div class="modal-overlay" id="newSupplierModal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <div class="modal-title">مورد جديد</div>
+      <button class="modal-close" onclick="closeModal('newSupplierModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="flex flex-col gap-3">
+        <div class="form-group">
+          <label class="form-label">الاسم *</label>
+          <input type="text" id="newSuppName" class="form-control" placeholder="اسم المورد" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">التليفون</label>
+          <input type="text" id="newSuppPhone" class="form-control" placeholder="01xxxxxxxxx" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">العنوان</label>
+          <input type="text" id="newSuppAddress" class="form-control" placeholder="العنوان" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">الرصيد الافتتاحي (جنيه)</label>
+          <input type="number" id="newSuppBalance" class="form-control" placeholder="0" value="0" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-success" onclick="saveNewSupplier()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        حفظ
+      </button>
+      <button class="btn btn-outline" onclick="closeModal('newSupplierModal')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- Advance Modal -->
+<div class="modal-overlay" id="advanceModal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <div class="modal-title">تسجيل سلفة</div>
+      <button class="modal-close" onclick="closeModal('advanceModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="flex flex-col gap-3">
+        <div class="form-group">
+          <label class="form-label">الموظف *</label>
+          <select id="advEmpId" class="form-control">
+            <option value="">اختر الموظف</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">المبلغ (جنيه) *</label>
+          <input type="number" id="advAmount" class="form-control" placeholder="0" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">الخزينة *</label>
+          <select id="advTreasury" class="form-control">
+            <option value="الخزينة">الخزينة النقدية</option>
+            <option value="فودافون كاش">فودافون كاش</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">ملاحظات</label>
+          <input type="text" id="advNotes" class="form-control" placeholder="سبب السلفة" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-success" onclick="saveAdvance()">حفظ السلفة</button>
+      <button class="btn btn-outline" onclick="closeModal('advanceModal')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- Partners Modal -->
+<div class="modal-overlay" id="partnersModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">إدارة الشركاء</div>
+      <button class="modal-close" onclick="closeModal('partnersModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="flex gap-3 mb-4">
+        <div class="form-group flex-1">
+          <label class="form-label">الاسم</label>
+          <input type="text" id="partnerName" class="form-control" placeholder="اسم الشريك" />
+        </div>
+        <div class="form-group" style="width:120px">
+          <label class="form-label">النسبة %</label>
+          <input type="number" id="partnerPercent" class="form-control" placeholder="0" />
+        </div>
+        <div class="form-group flex-1">
+          <label class="form-label">التليفون</label>
+          <input type="text" id="partnerPhone" class="form-control" placeholder="01xxxxxxxxx" />
+        </div>
+        <div style="display:flex; align-items:flex-end;">
+          <button class="btn btn-accent" onclick="addPartner()">+ إضافة</button>
+        </div>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>الاسم</th>
+              <th>النسبة %</th>
+              <th>التليفون</th>
+              <th>الرصيد</th>
+              <th>حذف</th>
+            </tr>
+          </thead>
+          <tbody id="partnersTableBody">
+            <tr><td colspan="5" class="table-empty">لا توجد شركاء</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('partnersModal')">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<!-- Quit confirmation overlay -->
+<div class="modal-overlay" id="quitModal">
+  <div class="modal modal-sm" style="max-width:420px;">
+    <div class="modal-header">
+      <div class="modal-title">إغلاق البرنامج</div>
+    </div>
+    <div class="modal-body" style="text-align:center;">
+      <p style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px;">هل تريد إنشاء نسخة احتياطية قبل الخروج؟</p>
+      <p style="font-size:12px;color:var(--text-muted);">سيتم حفظ نسخة من قاعدة البيانات تلقائياً</p>
+    </div>
+    <div class="modal-footer" style="justify-content:center;gap:8px;">
+      <button class="btn btn-success" onclick="window.electron.quitWithBackup()">نسخ وخروج</button>
+      <button class="btn btn-danger" onclick="window.electron.quitWithoutBackup()">خروج بدون نسخة</button>
+      <button class="btn btn-outline" onclick="document.getElementById('quitModal').classList.remove('open'); window.electron.cancelQuit();">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/shared/common.js"></script>
+<script src="js/main-dashboard.js"></script>
+</body>
+</html>

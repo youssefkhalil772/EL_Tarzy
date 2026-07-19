@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>EL-TARZY — الخدمات والأصناف</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../styles/global.css" />
+  <script src="../node_modules/sweetalert2/dist/sweetalert2.all.min.js"></script>
+  <style>
+    .srv-layout { display: flex; height: 100vh; flex-direction: column; }
+    .srv-body { flex: 1; display: flex; overflow: hidden; }
+    
+    /* Category Sidebar */
+    .cat-sidebar {
+      width: 240px;
+      background: var(--card);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+    .cat-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-secondary);
+    }
+    .cat-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+    }
+    .cat-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 6px;
+      cursor: pointer;
+      transition: all var(--transition);
+      border: 1px solid transparent;
+    }
+    .cat-item:hover { background: var(--bg); border-color: var(--border); }
+    .cat-item.active { background: var(--accent-light); border-color: var(--accent); color: var(--accent); font-weight: 700; }
+    .cat-item-name { font-size: 13px; font-weight: 600; }
+    .cat-item-actions { display: flex; gap: 4px; opacity: 0; transition: opacity var(--transition); }
+    .cat-item:hover .cat-item-actions { opacity: 1; }
+    
+    /* Main Content */
+    .srv-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    .barcode-display {
+      font-family: monospace;
+      background: rgba(0,0,0,0.05);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+<div class="srv-layout">
+
+  <!-- Header -->
+  <header class="app-header" style="flex-shrink:0;">
+    <div>
+      <div class="header-title">الخدمات والأصناف</div>
+      <div class="header-subtitle">إدارة أقسام الخدمات وتسعيرها والباركود</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-outline" onclick="goBack()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+        رجوع
+      </button>
+    </div>
+  </header>
+
+  <div class="srv-body">
+    
+    <!-- Category Sidebar -->
+    <div class="cat-sidebar">
+      <div class="cat-header">
+        <div style="font-size:14px;font-weight:700;color:var(--primary);margin-bottom:12px;">الأقسام الرئيسية</div>
+        <div class="flex gap-2">
+          <input type="text" id="newCatName" class="form-control" placeholder="اسم القسم الجديد" style="height:32px;font-size:12px;" />
+          <button class="btn btn-accent btn-sm" onclick="addCategory()" style="padding:0 12px;white-space:nowrap;">إضافة</button>
+        </div>
+      </div>
+      <div class="cat-list" id="categoryList">
+        <!-- Categories rendered here -->
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="srv-main">
+      
+      <div class="flex justify-between items-center mb-4">
+        <div>
+          <div style="font-size:18px;font-weight:700;color:var(--primary);" id="currentCategoryTitle">جميع الخدمات</div>
+          <div style="font-size:12px;color:var(--text-muted);" id="servicesCount">0 خدمة</div>
+        </div>
+        <div class="flex gap-3 items-center">
+          <div class="search-bar" style="width:240px;">
+            <input type="text" id="serviceSearch" placeholder="بحث باسم الخدمة أو الباركود..." oninput="renderServicesTable()" />
+            <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+          <button class="btn btn-success" onclick="openServiceModal()">+ خدمة جديدة</button>
+        </div>
+      </div>
+
+      <div class="card" style="flex:1;display:flex;flex-direction:column;padding:0;overflow:hidden;">
+        <div class="table-wrapper" style="flex:1;border:none;border-radius:0;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:40px;">#</th>
+                <th>اسم الخدمة</th>
+                <th>القسم</th>
+                <th>الباركود</th>
+                <th>سعر التكلفة</th>
+                <th>سعر البيع</th>
+                <th style="width:120px;">الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="servicesBody">
+              <tr><td colspan="7" class="table-empty">جاري التحميل...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Service Modal -->
+<div class="modal-overlay" id="serviceModal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <div class="modal-title" id="serviceModalTitle">إضافة خدمة جديدة</div>
+      <button class="modal-close" onclick="closeModal('serviceModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="srvId" />
+      <div class="flex flex-col gap-3">
+        <div class="form-group">
+          <label class="form-label">اسم الخدمة *</label>
+          <input type="text" id="srvName" class="form-control" placeholder="مثال: تقصير بنطلون جينز" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">القسم *</label>
+          <select id="srvCat" class="form-control">
+            <option value="">اختر القسم</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">الباركود</label>
+          <div class="flex gap-2">
+            <input type="text" id="srvBarcode" class="form-control" placeholder="امسح أو اكتب" />
+            <button class="btn btn-outline" style="padding:0 12px;" onclick="generateBarcode()">توليد</button>
+          </div>
+        </div>
+        <div class="form-row cols-2">
+          <div class="form-group">
+            <label class="form-label">سعر التكلفة</label>
+            <input type="number" id="srvCost" class="form-control" placeholder="0" step="0.5" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">سعر البيع *</label>
+            <input type="number" id="srvSell" class="form-control" placeholder="0" step="0.5" />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-success" onclick="saveService()">حفظ الخدمة</button>
+      <button class="btn btn-outline" onclick="closeModal('serviceModal')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let categories = [];
+let allServices = [];
+let currentCategoryId = 0; // 0 = All
+
+function goBack(){ window.electron.navigate('main-dashboard.html'); }
+
+function showToast(msg,type='success'){
+  const c=document.getElementById('toastContainer');
+  const t=document.createElement('div');
+  t.className=`toast toast-${type}`;
+  t.innerHTML=`<span>${type==='success'?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':type==='error'?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>':'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 9v2m0 4h.01M12 3l9 16H3L12 3z"/></svg>'}</span> ${msg}`;
+  c.appendChild(t);
+  setTimeout(()=>{t.style.animation='toastOut 0.3s ease forwards';setTimeout(()=>t.remove(),300);},3000);
+}
+
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function fmt(n){ return Number(n||0).toFixed(2); }
+
+// ─── Categories ───────────────────────────────────────────────────────────────
+async function loadCategories() {
+  const res = await window.db.query('SELECT * FROM service_categories ORDER BY id',[]);
+  if(res.success){
+    categories = res.data;
+    renderCategories();
+    populateCategorySelect();
+  }
+}
+
+function renderCategories() {
+  const container = document.getElementById('categoryList');
+  let html = `
+    <div class="cat-item ${currentCategoryId===0?'active':''}" onclick="selectCategory(0, 'جميع الخدمات')">
+      <div class="cat-item-name">الكل</div>
+    </div>
+  `;
+  categories.forEach(c => {
+    html += `
+      <div class="cat-item ${currentCategoryId===c.id?'active':''}" onclick="selectCategory(${c.id}, '${c.name.replace(/'/g,"\\'")}')">
+        <div class="cat-item-name">${c.name}</div>
+        <div class="cat-item-actions">
+          <button class="btn btn-sm btn-danger" style="padding:0 6px;height:22px;font-size:10px;" onclick="event.stopPropagation();deleteCategory(${c.id})">✕</button>
+        </div>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+function selectCategory(id, name) {
+  currentCategoryId = id;
+  document.getElementById('currentCategoryTitle').textContent = name;
+  renderCategories(); // update active class
+  renderServicesTable();
+}
+
+async function addCategory() {
+  const name = document.getElementById('newCatName').value.trim();
+  if(!name){ showToast('يرجى إدخال اسم القسم','error'); return; }
+  const res = await window.db.run('INSERT INTO service_categories (name) VALUES (?)',[name]);
+  if(res.success){
+    showToast('تم إضافة القسم ','success');
+    document.getElementById('newCatName').value='';
+    await loadCategories();
+  } else showToast('خطأ: '+res.error,'error');
+}
+
+async function deleteCategory(id) {
+  if(!confirm('هل أنت متأكد من حذف هذا القسم؟ (لن يتم حذف الخدمات المرتبطة به ولكن ستفقد تصنيفها)')) return;
+  await window.db.run('DELETE FROM service_categories WHERE id=?',[id]);
+  await window.db.run('UPDATE services SET category_id=NULL WHERE category_id=?',[id]);
+  if(currentCategoryId===id) currentCategoryId=0;
+  await loadCategories();
+  await loadServices();
+  showToast('تم الحذف','success');
+}
+
+function populateCategorySelect() {
+  const sel = document.getElementById('srvCat');
+  sel.innerHTML = '<option value="">اختر القسم</option>';
+  categories.forEach(c => {
+    sel.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+  });
+}
+
+// ─── Services ─────────────────────────────────────────────────────────────────
+async function loadServices() {
+  const res = await window.db.query(
+    'SELECT s.*, c.name as cat_name FROM services s LEFT JOIN service_categories c ON s.category_id=c.id ORDER BY s.id DESC',[]
+  );
+  if(res.success){
+    allServices = res.data;
+    renderServicesTable();
+  }
+}
+
+function renderServicesTable() {
+  const tbody = document.getElementById('servicesBody');
+  const query = document.getElementById('serviceSearch').value.trim().toLowerCase();
+  
+  let filtered = allServices;
+  
+  // Filter by category
+  if(currentCategoryId !== 0){
+    filtered = filtered.filter(s => s.category_id === currentCategoryId);
+  }
+  
+  // Filter by search
+  if(query){
+    filtered = filtered.filter(s => 
+      s.name.toLowerCase().includes(query) || 
+      (s.barcode && s.barcode.toLowerCase().includes(query))
+    );
+  }
+  
+  document.getElementById('servicesCount').textContent = `${filtered.length} خدمة`;
+  
+  if(!filtered.length){
+    tbody.innerHTML = '<tr><td colspan="7" class="table-empty">لا توجد خدمات مطابقة</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = filtered.map((s,i) => `
+    <tr>
+      <td style="color:var(--text-muted);">${i+1}</td>
+      <td style="font-weight:700;">${s.name}</td>
+      <td><span class="badge badge-accent">${s.cat_name||'بدون قسم'}</span></td>
+      <td>${s.barcode?`<span class="barcode-display">${s.barcode}</span>`:'—'}</td>
+      <td style="color:var(--danger);">${fmt(s.cost_price)}</td>
+      <td style="color:var(--success);font-weight:700;font-size:14px;">${fmt(s.sell_price)}</td>
+      <td>
+        <div class="flex gap-2">
+          <button class="btn btn-sm btn-outline" onclick="editService(${s.id})">تعديل</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteService(${s.id})">حذف</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openServiceModal() {
+  document.getElementById('serviceModalTitle').textContent = 'إضافة خدمة جديدة';
+  document.getElementById('srvId').value = '';
+  document.getElementById('srvName').value = '';
+  document.getElementById('srvCat').value = currentCategoryId===0?'':currentCategoryId;
+  document.getElementById('srvBarcode').value = '';
+  document.getElementById('srvCost').value = '';
+  document.getElementById('srvSell').value = '';
+  openModal('serviceModal');
+}
+
+function generateBarcode() {
+  const rand = Math.floor(1000000000 + Math.random() * 9000000000);
+  document.getElementById('srvBarcode').value = rand;
+}
+
+async function saveService() {
+  const id = document.getElementById('srvId').value;
+  const name = document.getElementById('srvName').value.trim();
+  const catId = document.getElementById('srvCat').value || null;
+  const barcode = document.getElementById('srvBarcode').value.trim() || null;
+  const cost = parseFloat(document.getElementById('srvCost').value) || 0;
+  const sell = parseFloat(document.getElementById('srvSell').value) || 0;
+  
+  if(!name || sell <= 0){
+    showToast('يرجى إدخال اسم الخدمة وسعر البيع','error');
+    return;
+  }
+  
+  // Check barcode uniqueness
+  if(barcode){
+    const checkRes = await window.db.queryOne('SELECT id FROM services WHERE barcode=? AND id!=?',[barcode, id||-1]);
+    if(checkRes.success && checkRes.data){
+      showToast('هذا الباركود مستخدم لخدمة أخرى','error');
+      return;
+    }
+  }
+  
+  let res;
+  if(id){
+    res = await window.db.run(
+      'UPDATE services SET category_id=?, name=?, barcode=?, sell_price=?, cost_price=? WHERE id=?',
+      [catId, name, barcode, sell, cost, id]
+    );
+  } else {
+    res = await window.db.run(
+      'INSERT INTO services (category_id, name, barcode, sell_price, cost_price) VALUES (?,?,?,?,?)',
+      [catId, name, barcode, sell, cost]
+    );
+  }
+  
+  if(res.success){
+    showToast('تم الحفظ بنجاح ','success');
+    closeModal('serviceModal');
+    await loadServices();
+  } else {
+    showToast('خطأ: '+res.error,'error');
+  }
+}
+
+function editService(id) {
+  const s = allServices.find(x=>x.id===id);
+  if(!s) return;
+  document.getElementById('serviceModalTitle').textContent = 'تعديل خدمة';
+  document.getElementById('srvId').value = s.id;
+  document.getElementById('srvName').value = s.name;
+  document.getElementById('srvCat').value = s.category_id || '';
+  document.getElementById('srvBarcode').value = s.barcode || '';
+  document.getElementById('srvCost').value = s.cost_price;
+  document.getElementById('srvSell').value = s.sell_price;
+  openModal('serviceModal');
+}
+
+async function deleteService(id) {
+  if(!confirm('هل أنت متأكد من حذف هذه الخدمة؟')) return;
+  await window.db.run('DELETE FROM services WHERE id=?',[id]);
+  showToast('تم الحذف','success');
+  await loadServices();
+}
+
+// ─── Admin Check & Quit ───────────────────────────────────────────────────────
+async function checkAdmin() {
+  const role = sessionStorage.getItem('elTarzy_role');
+  if (role !== 'admin') {
+    showToast('هذه الصفحة متاحة للمدير فقط', 'error');
+    setTimeout(() => goBack(), 1000);
+    return false;
+  }
+  return true;
+}
+
+window.electron.onConfirmBackupBeforeQuit(() => {
+  Swal.fire({
+    title: 'إغلاق البرنامج', text: 'هل تريد إنشاء نسخة احتياطية قبل الخروج؟', icon: 'question',
+    showDenyButton: true, showCancelButton: true, confirmButtonText: 'نسخ وخروج', denyButtonText: 'خروج بدون نسخة', cancelButtonText: 'إلغاء'
+  }).then((r) => {
+    if (r.isConfirmed) window.electron.quitWithBackup();
+    else if (r.isDenied) window.electron.quitWithoutBackup();
+    else window.electron.cancelQuit();
+  });
+});
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+async function init() {
+  const isAdmin = await checkAdmin();
+  if (isAdmin) {
+    await loadCategories();
+    await loadServices();
+  }
+}
+
+init();
+</script>
+</body>
+</html>
